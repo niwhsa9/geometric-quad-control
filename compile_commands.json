@@ -1,7 +1,13 @@
 [
 {
   "directory": "/home/ashwin/source/personal/geometric-quad-control/build",
-  "command": "/usr/bin/c++   -isystem /usr/local/webots/include/controller/cpp  -g   -std=gnu++17 -o CMakeFiles/quad.dir/src/main.cpp.o -c /home/ashwin/source/personal/geometric-quad-control/src/main.cpp",
+  "command": "/usr/bin/c++   -isystem /usr/local/webots/include/controller/cpp -isystem ../include  -g   -std=gnu++17 -o CMakeFiles/quad.dir/src/ekf.cpp.o -c /home/ashwin/source/personal/geometric-quad-control/src/ekf.cpp",
+  "file": "/home/ashwin/source/personal/geometric-quad-control/src/ekf.cpp"
+},
+
+{
+  "directory": "/home/ashwin/source/personal/geometric-quad-control/build",
+  "command": "/usr/bin/c++   -isystem /usr/local/webots/include/controller/cpp -isystem ../include  -g   -std=gnu++17 -o CMakeFiles/quad.dir/src/main.cpp.o -c /home/ashwin/source/personal/geometric-quad-control/src/main.cpp",
   "file": "/home/ashwin/source/personal/geometric-quad-control/src/main.cpp"
 }
 ]
