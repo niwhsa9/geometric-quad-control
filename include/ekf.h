@@ -1,4 +1,5 @@
 #include "manif/SE3.h"
+#include <Eigen/Dense>
 
 class EKF {
     public:
@@ -20,8 +21,7 @@ class EKF {
 
     private:
         State x;
-
-        ProcNoiseMat Q;
+        ProcNoiseMat P, Q;
         ObvNoiseMatGPS R_GPS;
         ObvNoiseMatAccel R_Accel;
         double dt;

@@ -58,6 +58,9 @@ Robot {
         url "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/robots/dji/mavic/protos/Mavic2Pro/meshes/body_lenses.obj"
       }
     }
+    DEF ACCEL Accelerometer {
+      name "accelerometer"
+    }
     DEF COMPASS Compass {
     }
     DEF GPS GPS {

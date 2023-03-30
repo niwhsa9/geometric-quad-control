@@ -13,7 +13,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/vehicles/protos/tesla/TeslaModel3Simple.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/trees/protos/Pine.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/trees/protos/Forest.proto"
-EXTERNPROTO "../protos/Mavic2Pro.proto"
+IMPORTABLE EXTERNPROTO "../protos/Mavic2Pro.proto"
 
 WorldInfo {
   info [
@@ -28,8 +28,8 @@ WorldInfo {
   }
 }
 Viewpoint {
-  orientation -0.007435446121463961 -0.0064877106300000945 0.9999513106905538 2.6319709095448727
-  position 2.0770800030932626 -0.9754434106534156 0.7053073214504153
+  orientation -0.500186570472263 0.46758823818528555 0.7288172845302017 1.019996948521239
+  position -2.560885528265691 -1.7322187310593407 2.6096023426114536
   near 0.2
   follow "Mavic 2 PRO"
   followSmoothness 0.2
@@ -70,6 +70,17 @@ Windmill {
   translation -44.258 -27.3356 0
   rotation -7.19228e-09 2.6842e-08 1 0.523601
   name "windmill(1)"
+}
+Mavic2Pro {
+  hidden translation_6 0.0412774 -0.00469654 -0.00405862
+  hidden rotation_6 0 0 1 0
+  hidden translation_7 0.000625212 -0.00530346 -0.0207448
+  hidden rotation_7 0 1 0 0
+  hidden translation_8 0.00754686 0.0160388 -0.00586401
+  hidden rotation_8 1 0 0 0
+  translation 0.0028941718158844304 -7.659574047434306e-05 0.08570872787430542
+  rotation 8.388838650756123e-05 -0.999998104920133 0.0019450241338159597 0.06974212156680852
+  controller "<extern>"
 }
 Windmill {
   translation -46.2448 30.573 0
@@ -148,19 +159,4 @@ Forest {
   minHeight 6
   maxRadius 6
   minRadius 3
-}
-Mavic2Pro {
-  hidden position_0_0 1.3381509269132585e-09
-  hidden position_5_0 -3.1159839153360736e-09
-  hidden position_6_0 1.1845959732551744e-09
-  translation 0.005307539291907304 -1.8954891418114565e-07 0.0857087278743042
-  rotation 0.03486392810980845 7.30355739008306e-07 0.9993920684677365 -3.1415828340328713
-  controller "<extern>"
-  cameraSlot [
-    Camera {
-      width 400
-      height 240
-      near 0.2
-    }
-  ]
 }
