@@ -19,22 +19,25 @@ EKF::State EKF::get_state() {
 }
 
 void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
-    std::cout << "accel " << accel.x() << ", " << accel.y() << ", " << accel.z() << std::endl;
-    std::cout << "vel " << x.dX.x() << ", " << x.dX.y() << ", " << x.dX.z() << std::endl;
+    //std::cout << "accel " << accel.x() << ", " << accel.y() << ", " << accel.z() << std::endl;
+    //std::cout << "vel " << x.dX.x() << ", " << x.dX.y() << ", " << x.dX.z() << std::endl;
     // Compute gyro in global frame
     //auto omega = x.X.asSO3().adj() * gyro;
+    Eigen::Vector3d gravity(0.0, 0.0, 9.81);
+    auto R_body_to_world = x.X.asSO3().rotation();
+    auto adjusted_accel = accel - R_body_to_world.transpose() * gravity; 
 
-    //auto adjusted_accel = accel
+    //std::cout << "adj accel " << adjusted_accel.x() << ", " << adjusted_accel.y() << ", " << adjusted_accel.z() << std::endl;
 
     // Update dX
-    x.dX.head<3>() += accel*dt;
-    //x.dX.tail<3>() = gyro;//omega;
+    x.dX.head<3>() += adjusted_accel*dt;
+    x.dX.tail<3>() = gyro;//omega;
 
     std::cout << manif::SE3Tangentd(x.dX) << std::endl;
 
     // Update X
     manif::SE3d::Jacobian J_o_x, J_o_dx;
-    x.X = x.X.rplus(manif::SE3Tangentd(x.dX), J_o_x, J_o_dx);
+    x.X = x.X.rplus(manif::SE3Tangentd(x.dX*dt), J_o_x, J_o_dx);
 
     // Construct dynamics Jacobian
     /*

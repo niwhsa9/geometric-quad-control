@@ -51,8 +51,8 @@ int main() {
     auto state = ekf.get_state();
 
     std::cout << "ekf  " << state.X.x() << " " << state.X.y() <<  " " << state.X.z()  << " "<< std::endl;
-    std::cout << "rot  " << state.X.quat().x() << " "<< state.X.quat().y() << " "<< state.X.quat().z() << " "  << state.X.quat().w() << std::endl;
-    //std::cout << "truth  " << g[0] << " " << g[1] <<  " " << g[2] << " "<< std::endl;
+    //std::cout << "rot  " << state.X.quat().x() << " "<< state.X.quat().y() << " "<< state.X.quat().z() << " "  << state.X.quat().w() << std::endl;
+    std::cout << "truth  " << g[0] << " " << g[1] <<  " " << g[2] << " "<< std::endl;
     
     
   }
