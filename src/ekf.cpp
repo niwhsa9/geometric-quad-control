@@ -1,5 +1,6 @@
 #include "ekf.h"
 #include <manif/impl/se3/SE3Tangent.h>
+#include <iostream>
 
 EKF::EKF(
     ProcNoiseMat proc_noise, 
@@ -13,17 +14,24 @@ Q(proc_noise), R_Accel(accel_noise), R_GPS(gps_noise), dt(dt)
     x.X.setIdentity();
 }
 
+
+EKF::State EKF::get_state() {
+    return x;
+}
+
 void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
+    std::cout << "accel " << accel.x() << ", " << accel.y() << ", " << accel.z() << std::endl;
+    std::cout << "vel " << x.dX.x() << ", " << x.dX.y() << ", " << x.dX.z() << std::endl;
     // Compute gyro in global frame
-    auto omega = x.X.asSO3().adj() * gyro;
+    //auto omega = x.X.asSO3().adj() * gyro;
 
     // Update dX
     x.dX.head<3>() += accel*dt;
-    x.dX.tail<3>() = omega;
+    //x.dX.tail<3>() = gyro;//omega;
 
     // Update X
     manif::SE3d::Jacobian J_o_x, J_o_dx;
-    x.X.lplus(manif::SE3Tangentd(x.dX), J_o_x, J_o_dx);
+    x.X = x.X.rplus(manif::SE3Tangentd(x.dX), J_o_x, J_o_dx);
 
     // Construct dynamics Jacobian
     /*
