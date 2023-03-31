@@ -26,11 +26,12 @@ int main() {
   auto gyro = robot->getGyro("gyro");
   auto accel = robot->getAccelerometer("accelerometer");
   auto gps = robot->getGPS("gps");
-  gps->enable(32);
-  accel->enable(32);
 
   Teleop teleop(robot.get());
   auto dt = robot->getBasicTimeStep();
+
+  gps->enable(dt);
+  accel->enable(dt);
 
   EKF ekf(
     EKF::ProcNoiseMat::Identity(), 
@@ -50,9 +51,9 @@ int main() {
       ekf.predict(Eigen::Vector3d(v), Eigen::Vector3d(a));
     auto state = ekf.get_state();
 
-    std::cout << "ekf  " << state.X.x() << " " << state.X.y() <<  " " << state.X.z()  << " "<< std::endl;
+    //std::cout << "ekf  " << state.X.x() << " " << state.X.y() <<  " " << state.X.z()  << " "<< std::endl;
     //std::cout << "rot  " << state.X.quat().x() << " "<< state.X.quat().y() << " "<< state.X.quat().z() << " "  << state.X.quat().w() << std::endl;
-    std::cout << "truth  " << g[0] << " " << g[1] <<  " " << g[2] << " "<< std::endl;
+    //std::cout << "truth  " << g[0] << " " << g[1] <<  " " << g[2] << " "<< std::endl;
     
     
   }
