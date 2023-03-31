@@ -24,6 +24,8 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
     // Compute gyro in global frame
     //auto omega = x.X.asSO3().adj() * gyro;
 
+    //auto adjusted_accel = accel
+
     // Update dX
     x.dX.head<3>() += accel*dt;
     //x.dX.tail<3>() = gyro;//omega;
