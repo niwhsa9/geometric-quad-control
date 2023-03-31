@@ -1,5 +1,4 @@
 #include "ekf.h"
-#include <manif/impl/se3/SE3Tangent.h>
 #include <iostream>
 
 EKF::EKF(
@@ -28,6 +27,8 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
     // Update dX
     x.dX.head<3>() += accel*dt;
     //x.dX.tail<3>() = gyro;//omega;
+
+    std::cout << manif::SE3Tangentd(x.dX) << std::endl;
 
     // Update X
     manif::SE3d::Jacobian J_o_x, J_o_dx;
