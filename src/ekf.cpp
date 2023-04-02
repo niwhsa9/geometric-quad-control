@@ -42,14 +42,32 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
 
     // Prediction state covariance
     P = F * P * F.transpose() + Q; 
-    std::cout << P.coeff(0, 0) << std::endl;
 }
 
 // EKF update step
 void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
-        //auto omega = x.X.asSO3().adj() * gyro;
-
-    // Error measured minus expected
+    // Innovation 
     auto y_pos = pos - x.X.translation();
-    auto y_vel = vel - x.dX.head<3>();
+    auto y_vel = vel - x.X.asSO3().adj() * x.dX.head<3>();
+    Vector6d y;
+    y << y_pos, y_vel;
+
+    // Sensor model Jacobian
+    Eigen::Matrix<double, 6, 6> H = Eigen::Matrix<double, 6, 6>::Zero();
+    H.block<3,3>(0, 0) = Eigen::Matrix3d::Identity();
+    H.block<3,3>(3, 3) = x.X.asSO3().adj();
+
+    // Innovation covariance
+    auto S = H * P * H.transpose() + R_GPS;
+
+    // Kalman gain
+    auto K = P * H.transpose() * S.inverse();
+
+    // State update
+    auto dx = K * y;
+    //x.X.translation() += dx.head<3>();
+    //x.dX.head<3>() += dx.tail<3>();
+
+    // State Covariance update
+    //P -= K * H * P;
 }

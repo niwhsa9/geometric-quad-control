@@ -6,7 +6,7 @@ class EKF {
         using Vector6d = Eigen::Matrix<double, 6, 1>;
         using ProcNoiseMat = Eigen::Matrix<double, 12, 12>;
         using ObvNoiseMatAccel = Eigen::Matrix3d;
-        using ObvNoiseMatGPS = Eigen::Matrix3d;
+        using ObvNoiseMatGPS = Eigen::Matrix<double, 6, 6>;
 
         EKF(ProcNoiseMat, ObvNoiseMatAccel, ObvNoiseMatGPS, double);
         EKF(const EKF&) = delete;
