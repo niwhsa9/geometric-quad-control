@@ -24,10 +24,12 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
     // Compute gyro in global frame
     //auto omega = x.X.asSO3().adj() * gyro;
     Eigen::Vector3d gravity(0.0, 0.0, 9.81);
-    auto R_body_to_world = x.X.asSO3().rotation();//.tranpose()
-    auto adjusted_accel = accel- R_body_to_world * gravity; 
+    auto R_body_to_world = x.X.asSO3().rotation();
+    auto adjusted_accel = accel- R_body_to_world.transpose()* gravity; 
 
-    std::cout << "adj accel " << adjusted_accel.x() << ", " << adjusted_accel.y() << ", " << adjusted_accel.z() << std::endl;
+    //std::cout << "adj accel " << adjusted_accel.x() << ", " << adjusted_accel.y() << ", " << adjusted_accel.z() << std::endl;
+    //auto ea = x.X.rotation().eulerAngles(0, 1, 2);
+    //std::cout << "angle estimate" <<  ea.x() << ", " << ea.y() << ", " << ea.z() << std::endl;
 
     // Update dX
     x.dX.head<3>() += adjusted_accel*dt;
