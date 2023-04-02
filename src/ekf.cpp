@@ -11,7 +11,7 @@ Q(proc_noise), R_Accel(accel_noise), R_GPS(gps_noise), dt(dt)
 {
     x.dX = Vector6d::Zero();
     x.X.setIdentity();
-    P.setIdentity();
+    P.setZero();
 }
 
 
@@ -19,24 +19,15 @@ EKF::State EKF::get_state() {
     return x;
 }
 
+// Discrete time state propogation
 void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
-    //std::cout << "accel " << accel.x() << ", " << accel.y() << ", " << accel.z() << std::endl;
-    //std::cout << "vel " << x.dX.x() << ", " << x.dX.y() << ", " << x.dX.z() << std::endl;
-    // Compute gyro in global frame
-    //auto omega = x.X.asSO3().adj() * gyro;
     Eigen::Vector3d gravity(0.0, 0.0, 9.81);
     auto R_body_to_world = x.X.asSO3().rotation();
     auto adjusted_accel = accel- R_body_to_world.transpose()* gravity; 
 
-    //std::cout << "adj accel " << adjusted_accel.x() << ", " << adjusted_accel.y() << ", " << adjusted_accel.z() << std::endl;
-    //auto ea = x.X.rotation().eulerAngles(0, 1, 2);
-    //std::cout << "angle estimate" <<  ea.x() << ", " << ea.y() << ", " << ea.z() << std::endl;
-
     // Update dX
     x.dX.head<3>() += adjusted_accel*dt;
     x.dX.tail<3>() = gyro;//omega;
-
-    //std::cout << manif::SE3Tangentd(x.dX) << std::endl;
 
     // Update X
     manif::SE3d::Jacobian J_o_x, J_o_dx;
@@ -52,4 +43,13 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
     // Prediction state covariance
     P = F * P * F.transpose() + Q; 
     std::cout << P.coeff(0, 0) << std::endl;
+}
+
+// EKF update step
+void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
+        //auto omega = x.X.asSO3().adj() * gyro;
+
+    // Error measured minus expected
+    auto y_pos = pos - x.X.translation();
+    auto y_vel = vel - x.dX.head<3>();
 }

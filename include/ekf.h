@@ -18,6 +18,7 @@ class EKF {
         
         State get_state();
         void predict(Eigen::Vector3d gyro, Eigen::Vector3d accel);
+        void update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel);
 
     private:
         State x;
