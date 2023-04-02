@@ -77,11 +77,11 @@ class Teleop {
                     break;
                     case (Keyboard::SHIFT + Keyboard::UP):
                     target_altitude += 0.05;
-                    printf("target altitude: %f [m]\n", target_altitude);
+                    //printf("target altitude: %f [m]\n", target_altitude);
                     break;
                     case (Keyboard::SHIFT + Keyboard::DOWN):
                     target_altitude -= 0.05;
-                    printf("target altitude: %f [m]\n", target_altitude);
+                    //printf("target altitude: %f [m]\n", target_altitude);
                     break;
                 }
                 key = kb->getKey();

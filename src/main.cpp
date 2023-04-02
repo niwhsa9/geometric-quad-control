@@ -51,11 +51,13 @@ int main() {
     teleop.keyboard_ctrl();
 
     // TODO skip start iterations due to strange contact forces at init in sim
-    if(iter_cnt > 1500 && !isnan(a[0]))
+    if(iter_cnt > 1500 && !isnan(a[0]) && !isnan(g[0])) {
       ekf.predict(Eigen::Vector3d(v), Eigen::Vector3d(a));
-    auto state = ekf.get_state();
+      auto state = ekf.get_state();
+      //std::cout << "ekf " << state.X.x() << " " << state.X.y() <<  " " << state.X.z()  << " "<< "truth " << g[0] << " " << g[1] <<  " " << g[2] << " "<< std::endl;
+    }
 
-    std::cout << "ekf  " << state.X.x() << " " << state.X.y() <<  " " << state.X.z()  << " "<< std::endl;
+    //std::cout << "ekf  " << state.X.x() << " " << state.X.y() <<  " " << state.X.z()  << " "<< std::endl
     //std::cout << "rot  " << state.X.quat().x() << " "<< state.X.quat().y() << " "<< state.X.quat().z() << " "  << state.X.quat().w() << std::endl;
     //std::cout << "truth  " << g[0] << " " << g[1] <<  " " << g[2] << " "<< std::endl;
     iter_cnt++; 

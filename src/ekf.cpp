@@ -11,6 +11,7 @@ Q(proc_noise), R_Accel(accel_noise), R_GPS(gps_noise), dt(dt)
 {
     x.dX = Vector6d::Zero();
     x.X.setIdentity();
+    P.setIdentity();
 }
 
 
@@ -42,15 +43,13 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
     x.X = x.X.rplus(manif::SE3Tangentd(x.dX*dt), J_o_x, J_o_dx);
 
     // Construct dynamics Jacobian
-    /*
-    auto F = Eigen::Matrix<double, 12, 12>::Zero();
-    F.block(0, 0, 6, 6) = J_o_x;
-    F.block(0, 6, 6, 6) = J_o_dx;
-    F.block(6, 6, 3, 3) = Eigen::Matrix3d::Identity();
-    F.block(9, 9, 3, 3) = Eigen::Matrix3d::Identity();
+    Eigen::Matrix<double, 12, 12> F = Eigen::Matrix<double, 12, 12>::Zero();
+    F.block<6,6>(0, 0) = J_o_x;
+    F.block<6,6>(0, 6) = J_o_dx;
+    F.block<3,3>(6, 6) = Eigen::Matrix3d::Identity();
+    F.block<3,3>(9, 9) = Eigen::Matrix3d::Identity();
 
     // Prediction state covariance
     P = F * P * F.transpose() + Q; 
-
-    */
+    std::cout << P.coeff(0, 0) << std::endl;
 }

@@ -4,7 +4,7 @@
 class EKF {
     public:
         using Vector6d = Eigen::Matrix<double, 6, 1>;
-        using ProcNoiseMat = Eigen::Matrix<double, 6, 6>;
+        using ProcNoiseMat = Eigen::Matrix<double, 12, 12>;
         using ObvNoiseMatAccel = Eigen::Matrix3d;
         using ObvNoiseMatGPS = Eigen::Matrix3d;
 
