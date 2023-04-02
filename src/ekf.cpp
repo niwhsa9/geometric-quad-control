@@ -25,9 +25,15 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
     auto R_body_to_world = x.X.asSO3().rotation();
     auto adjusted_accel = accel- R_body_to_world.transpose()* gravity; 
 
-    // Update dX
-    x.dX.head<3>() += adjusted_accel*dt;
-    x.dX.tail<3>() = gyro;//omega;
+    // Compute state updates in local frame
+    Vector6d imu_local;
+    imu_local.head<3>() = accel*dt;
+    imu_local.tail<3>() = gyro;//omega;
+
+    // Use adjoint to get imu in global frame
+    Vector6d imu_global = x.X.adj() * imu_local; 
+
+    // Compute update
 
     // Update X
     manif::SE3d::Jacobian J_o_x, J_o_dx;
