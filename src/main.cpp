@@ -36,7 +36,7 @@ int main() {
   EKF ekf(
     EKF::ProcNoiseMat::Identity(), 
     EKF::ObvNoiseMatAccel::Identity(),
-    EKF::ObvNoiseMatGPS::Identity(),
+    EKF::ObvNoiseMatGPS::Identity() * 0.1,
     dt/1000.0
     );
 

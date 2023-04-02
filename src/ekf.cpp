@@ -1,5 +1,6 @@
 #include "ekf.h"
 #include <iostream>
+#include <manif/impl/se3/SE3Tangent.h>
 
 EKF::EKF(
     ProcNoiseMat proc_noise, 
@@ -64,9 +65,12 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     auto K = P * H.transpose() * S.inverse();
 
     // State update
-    auto dx = K * y;
-    x.X.translation() += dx.head<3>();
-    x.dX.head<3>() += dx.tail<3>();
+    Eigen::Matrix<double, 12, 1> dx = K * y;
+    x.X = x.X.rplus(manif::SE3Tangentd(dx.head<6>()));
+    x.dX += dx.tail<6>();
+    //x.X.translation(dx.head<3>() + x.X.translation());
+    //x.dX.head<3>() += dx.block<3, 1>(6, 0);//dx.tail<3>();
+    //std::cout << dx << std::endl;
 
     // State Covariance update
     P -= K * H * P;
