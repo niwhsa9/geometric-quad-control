@@ -53,9 +53,9 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     y << y_pos, y_vel;
 
     // Sensor model Jacobian
-    Eigen::Matrix<double, 6, 6> H = Eigen::Matrix<double, 6, 6>::Zero();
+    Eigen::Matrix<double, 6, 12> H = Eigen::Matrix<double, 6, 12>::Zero();
     H.block<3,3>(0, 0) = Eigen::Matrix3d::Identity();
-    H.block<3,3>(3, 3) = x.X.asSO3().adj();
+    H.block<3,3>(3, 6) = x.X.asSO3().adj();
 
     // Innovation covariance
     auto S = H * P * H.transpose() + R_GPS;
@@ -65,9 +65,9 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
 
     // State update
     auto dx = K * y;
-    //x.X.translation() += dx.head<3>();
-    //x.dX.head<3>() += dx.tail<3>();
+    x.X.translation() += dx.head<3>();
+    x.dX.head<3>() += dx.tail<3>();
 
     // State Covariance update
-    //P -= K * H * P;
+    P -= K * H * P;
 }
