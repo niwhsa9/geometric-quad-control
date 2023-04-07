@@ -41,10 +41,10 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
 }
 
 // EKF update step
-/*
+
 void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     // Innovation 
-    auto y_pos = pos - x.X.translation();
+    auto y_pos = pos - X.translation();
     //auto y_vel = vel - x.X.asSO3().adj() * x.dX.head<3>();
     //Vector6d y;
     //y << y_pos, y_vel;
@@ -52,25 +52,22 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
 
     // Sensor model Jacobian
     //Eigen::Matrix<double, 6, 12> H = Eigen::Matrix<double, 6, 12>::Zero();
-    Eigen::Matrix<double, 3, 12> H = Eigen::Matrix<double, 3, 12>::Zero();
+    Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
     H.block<3,3>(0, 0) = Eigen::Matrix3d::Identity();
     //H.block<3,3>(3, 6) = x.X.asSO3().adj();
 
     // Innovation covariance
-    auto S = H * P * H.transpose() + Eigen::Matrix3d::Identity();//R_GPS;
+    auto S = H * P * H.transpose() + Eigen::Matrix3d::Identity()*dt;//R_GPS;
 
     // Kalman gain
     auto K = P * H.transpose() * S.inverse();
 
     // State update
-    Eigen::Matrix<double, 12, 1> dx = K * y;
-    x.X = x.X.rplus(manif::SE3Tangentd(dx.head<6>()));
-    x.dX += dx.tail<6>();
-    //x.X.translation(dx.head<3>() + x.X.translation());
-    //x.dX.head<3>() += dx.block<3, 1>(6, 0);//dx.tail<3>();
-    //std::cout << dx << std::endl;
+    Eigen::Matrix<double, 9, 1> dx = K * y;
+    X = X.rplus(manif::SE_2_3Tangentd(dx));
+    std::cout << dx << std::endl;
 
     // State Covariance update
-    P -= K * H * P;
+    //P -= K * H * P;
+    P -= K * S * K.transpose();
 }
-*/
