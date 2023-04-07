@@ -23,8 +23,8 @@ EKF::State EKF::get_state() {
 // For SE_2 (3) velocity component is world frame velocity
 void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
     Eigen::Vector3d gravity(0.0, 0.0, 9.81);
-    auto R_body_in_world = X.rotation();
-    auto accel_in_body = accel - R_body_in_world.transpose()*gravity;
+    Eigen::Matrix3d R_body_in_world = X.rotation();
+    Eigen::Vector3d accel_in_body = accel - R_body_in_world.transpose()*gravity;
 
     // Update X
     Vector9d u;
@@ -32,9 +32,8 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
         dt * gyro, dt * accel_in_body;
 
     // Construct dynamics Jacobian
-    manif::SE_2_3d::Jacobian J_o_x, J_o_dx;
-    X = X.rplus(manif::SE_2_3Tangentd(u), J_o_x, J_o_dx);
-    auto F = J_o_x;
+    manif::SE_2_3d::Jacobian F, J_o_dx;
+    X = X.rplus(manif::SE_2_3Tangentd(u), F, J_o_dx);
 
     // Prediction state covariance
     P = F * P * F.transpose() + Q; 
@@ -44,23 +43,21 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
 
 void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     // Innovation 
-    auto y_pos = pos - X.translation();
-    //auto y_vel = vel - x.X.asSO3().adj() * x.dX.head<3>();
-    //Vector6d y;
-    //y << y_pos, y_vel;
-    auto y = y_pos;
+    Eigen::Vector3d y_pos = pos - X.translation();
+    auto y_vel = vel - X.linearVelocity();
+    Vector6d y;
+    y << y_pos, y_vel;
 
     // Sensor model Jacobian
-    //Eigen::Matrix<double, 6, 12> H = Eigen::Matrix<double, 6, 12>::Zero();
-    Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
+    Eigen::Matrix<double, 6, 9> H = Eigen::Matrix<double, 6, 9>::Zero();
     H.block<3,3>(0, 0) = Eigen::Matrix3d::Identity();
-    //H.block<3,3>(3, 6) = x.X.asSO3().adj();
+    H.block<3,3>(3, 6) = Eigen::Matrix3d::Identity();
 
     // Innovation covariance
-    auto S = H * P * H.transpose() + Eigen::Matrix3d::Identity()*dt;//R_GPS;
+    Eigen::Matrix<double, 6, 6> S = H * P * H.transpose() + R_GPS;
 
     // Kalman gain
-    auto K = P * H.transpose() * S.inverse();
+    Eigen::Matrix<double, 9, 6> K = P * H.transpose() * S.inverse();
 
     // State update
     Eigen::Matrix<double, 9, 1> dx = K * y;
