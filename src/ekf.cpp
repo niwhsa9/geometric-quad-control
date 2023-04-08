@@ -62,9 +62,7 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     // State update
     Eigen::Matrix<double, 9, 1> dx = K * y;
     X = X.rplus(manif::SE_2_3Tangentd(dx));
-    //std::cout << dx << std::endl;
 
     // State Covariance update
-    //P -= K * H * P;
     P -= K * S * K.transpose();
 }

@@ -64,7 +64,8 @@ int main() {
       ekf.update_gps(noisy_gps_pos, gps_vel);
       auto state = ekf.get_state();
       std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
-        "truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
+        //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
+        "truth " << noisy_gps_pos.x() << " " << noisy_gps_pos.y() <<  " " << noisy_gps_pos.z() << " "<< std::endl;
     }
 
     iter_cnt++; 
