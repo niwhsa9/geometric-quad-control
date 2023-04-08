@@ -39,7 +39,7 @@ int main() {
   accel->enable(dt);
 
   EKF ekf(
-    EKF::ProcNoiseMat::Identity(), 
+    EKF::ProcNoiseMat::Identity()*0.1, 
     EKF::ObvNoiseMatAccel::Identity(),
     EKF::ObvNoiseMatGPS::Identity() * 0.1,
     dt/1000.0
@@ -59,7 +59,7 @@ int main() {
     teleop.keyboard_ctrl();
 
     // TODO skip start iterations due to strange contact forces at init in sim
-    if(iter_cnt > 0 && !isnan(a.x()) && !isnan(gps_pos.x())) {
+    if(iter_cnt > 1500 && !isnan(a.x()) && !isnan(gps_pos.x())) {
       ekf.predict(omega, a);
       ekf.update_gps(noisy_gps_pos, gps_vel);
       auto state = ekf.get_state();
