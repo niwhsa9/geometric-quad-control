@@ -40,7 +40,6 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
 }
 
 // EKF update step
-
 void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     // Innovation 
     Eigen::Vector3d y_pos = pos - X.translation();
