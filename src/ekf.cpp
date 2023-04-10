@@ -65,3 +65,24 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     // State Covariance update
     P -= K * S * K.transpose();
 }
+
+// Right Invariant EKF update
+void EKF::invariant_update(Eigen::Vector3d, Eigen::Matrix3d) {
+
+}
+
+
+void EKF::update_imu(Eigen::Vector3d mag, Eigen::Vector3d acc) {
+    // Innovation
+    mag.normalize();
+    acc.normalize();
+    Eigen::Matrix3d world_in_body;
+    world_in_body << mag, acc.cross(mag), mag; 
+
+    Eigen::Vector3d y = manif::SO3d(world_in_body * X.rotation()).log().coeffs();
+
+    // Sensor model Jacobian
+    Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 6, 9>::Zero();
+    H.block<3,3>(0, 0) = Eigen::Matrix3d::Identity();
+
+}

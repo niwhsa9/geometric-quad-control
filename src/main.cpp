@@ -7,6 +7,8 @@
 #include <webots/GPS.hpp>
 #include <webots/Supervisor.hpp>
 #include <webots/Accelerometer.hpp>
+#include <webots/InertialUnit.hpp>
+#include <webots/Compass.hpp>
 #include <iostream>
 #include <memory>
 #include "ekf.h"
@@ -27,6 +29,8 @@ int main() {
   auto gyro = robot->getGyro("gyro");
   auto accel = robot->getAccelerometer("accelerometer");
   auto gps = robot->getGPS("gps");
+  auto compass = robot->getCompass("compass");
+  auto inertial = robot->getCompass("inerital unit");
 
   std::random_device rd; 
   std::mt19937 gen(rd()); 
@@ -65,9 +69,11 @@ int main() {
       ekf.predict(omega, a);
       ekf.update_gps(noisy_gps_pos, noisy_gps_vel);
       auto state = ekf.get_state();
+      /*
       std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
         //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
         "truth " << noisy_gps_pos.x() << " " << noisy_gps_pos.y() <<  " " << noisy_gps_pos.z() << " "<< std::endl;
+      */
     }
 
     iter_cnt++; 
