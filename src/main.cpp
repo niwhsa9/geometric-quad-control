@@ -48,7 +48,7 @@ int main() {
 
   EKF ekf(
     EKF::ProcNoiseMat::Identity()*0.001, 
-    EKF::ObvNoiseMatAccel::Identity() * 0.1,
+    EKF::ObvNoiseMatAccel::Identity() * 0.001,
     EKF::ObvNoiseMatGPS::Identity() * 0.1,
     dt/1000.0
     );
@@ -87,6 +87,9 @@ int main() {
         //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
         "truth " << noisy_gps_pos.x() << " " << noisy_gps_pos.y() <<  " " << noisy_gps_pos.z() << " "<< std::endl;
       */
+
+      // TODO rotation error gets messed up when quad exceeds 90 degree rot
+      // in either direction from start. Mag vector is not static?
     }
 
     iter_cnt++; 

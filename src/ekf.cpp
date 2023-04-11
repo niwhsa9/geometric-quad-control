@@ -86,6 +86,7 @@ void EKF::invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Matrix3d
     // State update
     Eigen::Matrix<double, 9, 1> dx = K * y;
     X = X.rplus(manif::SE_2_3Tangentd(dx));
+    X.normalize();
 
     // State Covariance update
     P -= K * S * K.transpose();
