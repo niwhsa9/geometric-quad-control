@@ -8,9 +8,11 @@ EKF::EKF(
     ObvNoiseMatGPS gps_noise, 
     double dt
     ): 
-Q(proc_noise), R_Accel(accel_noise), R_GPS(gps_noise), dt(dt)
+Q(proc_noise), R_Accel(accel_noise), R_GPS(gps_noise), dt(dt),
+X(Eigen::Vector3d::Zero(), Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0), Eigen::Vector3d::Zero())
 {
-    X.setIdentity();
+    //X.setIdentity();
+    //X.quat();
     P.setZero();
 }
 
@@ -92,4 +94,5 @@ void EKF::invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Matrix3d
 
 void EKF::update_imu(Eigen::Vector3d mag, Eigen::Vector3d acc) {
     invariant_update(acc, Eigen::Vector3d(0.0, 0.0, 9.81), R_Accel);
+    invariant_update(mag, Eigen::Vector3d(0.0, 1.0, 0.0), R_Accel);
 }

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include <cmath>
+#include <eigen3/Eigen/src/Geometry/Quaternion.h>
 #include <manif/manif.h>
 #include <webots/Robot.hpp>
 #include <webots/Gyro.hpp>
@@ -30,7 +31,7 @@ int main() {
   auto accel = robot->getAccelerometer("accelerometer");
   auto gps = robot->getGPS("gps");
   auto compass = robot->getCompass("compass");
-  auto inertial = robot->getCompass("inerital unit");
+  auto inertial = robot->getInertialUnit("inertial unit");
 
   std::random_device rd; 
   std::mt19937 gen(rd()); 
@@ -42,10 +43,12 @@ int main() {
 
   gps->enable(dt);
   accel->enable(dt);
+  inertial->enable(dt);
+  compass->enable(dt);
 
   EKF ekf(
     EKF::ProcNoiseMat::Identity()*0.001, 
-    EKF::ObvNoiseMatAccel::Identity(),
+    EKF::ObvNoiseMatAccel::Identity() * 0.1,
     EKF::ObvNoiseMatGPS::Identity() * 0.1,
     dt/1000.0
     );
@@ -57,6 +60,9 @@ int main() {
     Eigen::Vector3d a(accel->getValues());
     Eigen::Vector3d gps_pos(gps->getValues());
     Eigen::Vector3d gps_vel(gps->getSpeedVector());
+    auto q = inertial->getQuaternion();
+    Eigen::Quaterniond rot_truth(q[3], q[0], q[1], q[2]);
+    Eigen::Vector3d mag(compass->getValues());
 
     Eigen::Vector3d noisy_gps_pos = add_noise(gps_pos, nd_gps_pos, gen);
     Eigen::Vector3d noisy_gps_vel = add_noise(gps_vel, nd_gps_vel, gen);
@@ -69,6 +75,13 @@ int main() {
       ekf.predict(omega, a);
       ekf.update_gps(noisy_gps_pos, noisy_gps_vel);
       auto state = ekf.get_state();
+
+      auto rot_delta = ekf.get_state().asSO3().between(manif::SO3d(rot_truth));
+      ekf.update_imu(mag, a);
+      std::cout << "rot error " << rot_delta.log().weightedNorm() << std::endl;
+      //std::cout << "mag " << mag << std::endl;
+
+      //std::cout << "rot truth " << rot_truth.coeffs()  << std::endl;
       /*
       std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
         //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
