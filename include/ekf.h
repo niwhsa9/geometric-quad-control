@@ -19,7 +19,7 @@ class EKF {
         void update_imu(Eigen::Vector3d mag, Eigen::Vector3d acc);
 
     private:
-        void invariant_update(Eigen::Vector3d, Eigen::Matrix3d);
+        void invariant_update(Eigen::Vector3d, Eigen::Vector3d, Eigen::Matrix3d);
 
         State X;
         ProcNoiseMat P, Q;

@@ -67,22 +67,29 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
 }
 
 // Right Invariant EKF update
-void EKF::invariant_update(Eigen::Vector3d, Eigen::Matrix3d) {
+void EKF::invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Matrix3d R) {
+    // Innovation and sensor Jacobian
+    manif::SO3d::Jacobian J1, J2;
+    Eigen::Vector3d y = z - X.asSO3().inverse(J1).act(b, J2);
+    Eigen::Matrix3d H_rot = J2 * J1;
+    Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
+    H.block<3, 3>(0, 3) = H_rot;
 
+    // Innovation covariance
+    Eigen::Matrix<double, 3, 3> S = H * P * H.transpose() + R;
+
+    // Kalman gain
+    Eigen::Matrix<double, 9, 3> K = P * H.transpose() * S.inverse();
+
+    // State update
+    Eigen::Matrix<double, 9, 1> dx = K * y;
+    X = X.rplus(manif::SE_2_3Tangentd(dx));
+
+    // State Covariance update
+    P -= K * S * K.transpose();
 }
 
 
 void EKF::update_imu(Eigen::Vector3d mag, Eigen::Vector3d acc) {
-    // Innovation
-    mag.normalize();
-    acc.normalize();
-    Eigen::Matrix3d world_in_body;
-    world_in_body << mag, acc.cross(mag), mag; 
-
-    Eigen::Vector3d y = manif::SO3d(world_in_body * X.rotation()).log().coeffs();
-
-    // Sensor model Jacobian
-    Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 6, 9>::Zero();
-    H.block<3,3>(0, 0) = Eigen::Matrix3d::Identity();
-
+    invariant_update(acc, Eigen::Vector3d(0.0, 0.0, 9.81), R_Accel);
 }
