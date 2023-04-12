@@ -58,10 +58,20 @@ int main() {
   while (robot->step(dt) != -1) {
     Eigen::Vector3d omega(gyro->getValues());
     Eigen::Vector3d a(accel->getValues());
-    Eigen::Vector3d gps_pos(gps->getValues());
-    Eigen::Vector3d gps_vel(gps->getSpeedVector());
-    auto q = inertial->getQuaternion();
-    Eigen::Quaterniond rot_truth(q[3], q[0], q[1], q[2]);
+    auto gps_pos_raw = gps->getValues();
+    Eigen::Vector3d gps_pos(gps_pos_raw[0], gps_pos_raw[1], gps_pos_raw[2]);
+    //Eigen::Vector3d gps_pos(gps_pos_raw);
+    auto gps_vel_raw = gps->getSpeedVector();
+    Eigen::Vector3d gps_vel(gps_vel_raw[0], gps_vel_raw[1], gps_vel_raw[2]);
+    //Eigen::Vector3d gps_vel(gps_vel_raw);
+
+    auto q = inertial->getQuaternion(); // TODO quaternion is in wrong frame
+    Eigen::Quaterniond q_truth(q[3], q[0], q[1], q[2]);
+    manif::SO3d rot_truth(q_truth);
+    //rot_truth  = manif::SO3Tangentd(Eigen::Vector3d(0, 0, 3.14159/2)).plus(rot_truth);
+    //rot_truth  = rot_truth + manif::SO3Tangentd(Eigen::Vector3d(0, 0, 3.14159/2));
+    //rot_truth
+
     Eigen::Vector3d mag(compass->getValues());
 
     Eigen::Vector3d noisy_gps_pos = add_noise(gps_pos, nd_gps_pos, gen);
@@ -71,15 +81,22 @@ int main() {
     teleop.keyboard_ctrl();
 
     // TODO skip start iterations due to strange contact forces at init in sim
-    if(iter_cnt > 1500 && !isnan(a.x()) && !isnan(gps_pos.x())) {
+    if(iter_cnt > 0 && !isnan(a.x()) && !isnan(gps_pos.x())) {
       ekf.predict(omega, a);
       ekf.update_gps(noisy_gps_pos, noisy_gps_vel);
       auto state = ekf.get_state();
 
-      auto rot_delta = ekf.get_state().asSO3().between(manif::SO3d(rot_truth));
+      auto rot_delta = ekf.get_state().asSO3().between(rot_truth);
       ekf.update_imu(mag, a);
-      std::cout << "rot error " << rot_delta.log().weightedNorm() << std::endl;
       //std::cout << "mag " << mag << std::endl;
+      //std::cout << "expected " << rot_truth.rotation().inverse() * Eigen::Vector3d(0, 1, 0) << std::endl;
+      //std::cout << "gps " << gps_pos << std::endl;
+      //std::cout << "rot error " << rot_delta.log().weightedNorm() << std::endl;
+      std::cout << "euler "<< state.rotation().eulerAngles(2, 1, 0) << std::endl;
+      //std::cout << "truth "<< rot_truth.rotation().eulerAngles(2, 1, 0) << std::endl;
+      //std::cout << "rot truth " << rot_truth.coeffs() << std::endl;
+      //std::cout << "mag " << mag << std::endl;
+      //std::cout << "gps " << gps_pos << std::endl;
 
       //std::cout << "rot truth " << rot_truth.coeffs()  << std::endl;
       /*
@@ -88,8 +105,6 @@ int main() {
         "truth " << noisy_gps_pos.x() << " " << noisy_gps_pos.y() <<  " " << noisy_gps_pos.z() << " "<< std::endl;
       */
 
-      // TODO rotation error gets messed up when quad exceeds 90 degree rot
-      // in either direction from start. Mag vector is not static?
     }
 
     iter_cnt++; 

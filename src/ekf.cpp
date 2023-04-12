@@ -9,7 +9,7 @@ EKF::EKF(
     double dt
     ): 
 Q(proc_noise), R_Accel(accel_noise), R_GPS(gps_noise), dt(dt),
-X(Eigen::Vector3d::Zero(), Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0), Eigen::Vector3d::Zero())
+X(Eigen::Vector3d::Zero(), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero())
 {
     //X.setIdentity();
     //X.quat();
@@ -36,6 +36,7 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
     // Construct dynamics Jacobian
     manif::SE_2_3d::Jacobian F, J_o_dx;
     X = X.rplus(manif::SE_2_3Tangentd(u), F, J_o_dx);
+    X.normalize();
 
     // Prediction state covariance
     P = F * P * F.transpose() + Q; 
@@ -63,6 +64,7 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     // State update
     Eigen::Matrix<double, 9, 1> dx = K * y;
     X = X.rplus(manif::SE_2_3Tangentd(dx));
+    X.normalize();
 
     // State Covariance update
     P -= K * S * K.transpose();
@@ -72,8 +74,17 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
 void EKF::invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Matrix3d R) {
     // Innovation and sensor Jacobian
     manif::SO3d::Jacobian J1, J2;
+    J1.setIdentity();
+    J2.setIdentity();
     Eigen::Vector3d y = z - X.asSO3().inverse(J1).act(b, J2);
+    if(b.y() == 1.0) {
+        //std::cout << "mag expected " <<X.asSO3().inverse(J1).act(b, J2)<< std::endl;
+        //std::cout << "mag true " << z << std::endl;
+    }
+    //std::cout << "innovation " << y << std::endl;
+    //Eigen::Vector3d y = b - X.asSO3().act(z, J2) ;
     Eigen::Matrix3d H_rot = J2 * J1;
+    //Eigen::Matrix3d H_rot = J1 * J2;
     Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
     H.block<3, 3>(0, 3) = H_rot;
 
@@ -94,6 +105,7 @@ void EKF::invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Matrix3d
 
 
 void EKF::update_imu(Eigen::Vector3d mag, Eigen::Vector3d acc) {
+    mag = Eigen::Vector3d(0.0, 1.0, 0.0); 
     invariant_update(acc, Eigen::Vector3d(0.0, 0.0, 9.81), R_Accel);
     invariant_update(mag, Eigen::Vector3d(0.0, 1.0, 0.0), R_Accel);
 }
