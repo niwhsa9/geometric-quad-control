@@ -43,6 +43,30 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
 
 // EKF update step
 void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
+    // Innovation and sensor Jacobian
+    manif::SE_2_3d::Jacobian J1; 
+    Eigen::Matrix<double, 3, 9> J2;
+    //J1.setIdentity();
+    //J2.setIdentity();
+
+    Eigen::Vector3d y = -X.inverse(J1).act(pos, J2) + Eigen::Vector3d(0.0, 0.0, 0.0);
+
+    Eigen::Matrix<double, 3, 9> H = J2 * J1;
+    
+    // Innovation covariance
+    Eigen::Matrix<double, 3, 3> S = H * P * H.transpose() + R_GPS.block<3,3>(0, 0);//X.asSO3().adj() * R * X.asSO3().adj().transpose();
+
+    // Kalman gain
+    Eigen::Matrix<double, 9, 3> K = P * H.transpose() * S.inverse();
+
+    // State update
+    Eigen::Matrix<double, 9, 1> dx = K * y;
+    X = X.rplus(manif::SE_2_3Tangentd(dx));
+    X.normalize();
+
+    // State Covariance update
+    P -= K * S * K.transpose();
+    /*
     // Innovation 
     Eigen::Vector3d y_pos = pos - X.translation();
     Eigen::Vector3d y_vel = vel - X.linearVelocity();
@@ -71,6 +95,7 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
 
     // State Covariance update
     P -= K * S * K.transpose();
+    */
 }
 
 // Right Invariant EKF update
