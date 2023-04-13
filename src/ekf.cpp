@@ -53,6 +53,7 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     Eigen::Matrix<double, 6, 9> H = Eigen::Matrix<double, 6, 9>::Zero();
     H.block<3,3>(0, 0) = Eigen::Matrix3d::Identity();
     H.block<3,3>(3, 6) = Eigen::Matrix3d::Identity();
+    std::cout << H << std::endl;
 
     // Innovation covariance
     Eigen::Matrix<double, 6, 6> S = H * P * H.transpose() + R_GPS;
