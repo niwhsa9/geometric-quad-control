@@ -89,18 +89,9 @@ int main() {
       auto rot_delta = ekf.get_state().asSO3().between(rot_truth);
       ekf.update_imu(mag, a);
       ekf.update_gps(noisy_gps_pos, noisy_gps_vel);
-      //std::cout << "mag " << mag << std::endl;
-      //std::cout << "expected " << rot_truth.rotation().inverse() * Eigen::Vector3d(0, 1, 0) << std::endl;
-      //std::cout << "gps " << gps_pos << std::endl;
+
       std::cout << "rot error " << rot_delta.log().weightedNorm() << std::endl;
       std::cout << "pos error " << (gps_pos - ekf.get_state().translation()).norm() << std::endl;
-      //std::cout << "euler "<< state.rotation().eulerAngles(2, 1, 0) << std::endl;
-      //std::cout << "truth "<< rot_truth.rotation().eulerAngles(2, 1, 0) << std::endl;
-      //std::cout << "rot truth " << rot_truth.coeffs() << std::endl;
-      //std::cout << "mag " << mag << std::endl;
-      //std::cout << "gps " << gps_pos << std::endl;
-
-      //std::cout << "rot truth " << rot_truth.coeffs()  << std::endl;
       /*
       std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
         //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;

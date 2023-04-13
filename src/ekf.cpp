@@ -45,7 +45,7 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
 void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     // Innovation 
     Eigen::Vector3d y_pos = pos - X.translation();
-    auto y_vel = vel - X.linearVelocity();
+    Eigen::Vector3d y_vel = vel - X.linearVelocity();
     Vector6d y;
     y << y_pos, y_vel;
 
@@ -53,7 +53,6 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     Eigen::Matrix<double, 6, 9> H = Eigen::Matrix<double, 6, 9>::Zero();
     H.block<3,3>(0, 0) = Eigen::Matrix3d::Identity();
     H.block<3,3>(3, 6) = Eigen::Matrix3d::Identity();
-    std::cout << H << std::endl;
 
     // Innovation covariance
     Eigen::Matrix<double, 6, 6> S = H * P * H.transpose() + R_GPS;
@@ -63,6 +62,10 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
 
     // State update
     Eigen::Matrix<double, 9, 1> dx = K * y;
+
+    //dx.block<3, 1>(3, 0) = Eigen::Vector3d::Zero();
+
+    //std::cout << dx << std::endl;
     X = X.rplus(manif::SE_2_3Tangentd(dx));
     X.normalize();
 
