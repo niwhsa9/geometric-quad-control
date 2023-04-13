@@ -82,6 +82,7 @@ int main() {
 
     // TODO skip start iterations due to strange contact forces at init in sim
     if(iter_cnt > 0 && !isnan(a.x()) && !isnan(gps_pos.x())) {
+      //omega.setZero();
       ekf.predict(omega, a);
       ekf.update_gps(noisy_gps_pos, noisy_gps_vel);
       auto state = ekf.get_state();
@@ -92,7 +93,7 @@ int main() {
       //std::cout << "expected " << rot_truth.rotation().inverse() * Eigen::Vector3d(0, 1, 0) << std::endl;
       //std::cout << "gps " << gps_pos << std::endl;
       //std::cout << "rot error " << rot_delta.log().weightedNorm() << std::endl;
-      std::cout << "euler "<< state.rotation().eulerAngles(2, 1, 0) << std::endl;
+      //std::cout << "euler "<< state.rotation().eulerAngles(2, 1, 0) << std::endl;
       //std::cout << "truth "<< rot_truth.rotation().eulerAngles(2, 1, 0) << std::endl;
       //std::cout << "rot truth " << rot_truth.coeffs() << std::endl;
       //std::cout << "mag " << mag << std::endl;
