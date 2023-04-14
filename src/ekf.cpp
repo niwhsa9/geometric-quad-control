@@ -172,5 +172,6 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
 TODO design:
 1. run ekf in its own thread, data updates wake up cv and run update steps
 2. right_invraint_update(std::function<tuple<y,h>(z, b)>) then deduce matrix sizes
+3. change to correct forms
 
 */
