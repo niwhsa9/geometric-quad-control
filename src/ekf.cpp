@@ -42,19 +42,19 @@ void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
 }
 
 // EKF update step
-void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
+void EKF::left_invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Matrix3d R) {
     // Innovation and sensor Jacobian
     manif::SE_2_3d::Jacobian J1; 
     Eigen::Matrix<double, 3, 9> J2;
     //J1.setIdentity();
     //J2.setIdentity();
 
-    Eigen::Vector3d y = -X.inverse(J1).act(pos, J2) + Eigen::Vector3d(0.0, 0.0, 0.0);
+    Eigen::Vector3d y = -X.inverse(J1).act(z, J2) + b;
 
     Eigen::Matrix<double, 3, 9> H = J2 * J1;
     
     // Innovation covariance
-    Eigen::Matrix<double, 3, 3> S = H * P * H.transpose() + R_GPS.block<3,3>(0, 0);//X.asSO3().adj() * R * X.asSO3().adj().transpose();
+    Eigen::Matrix<double, 3, 3> S = H * P * H.transpose() + R;//X.asSO3().adj() * R * X.asSO3().adj().transpose();
 
     // Kalman gain
     Eigen::Matrix<double, 9, 3> K = P * H.transpose() * S.inverse();
@@ -99,13 +99,14 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
 }
 
 // Right Invariant EKF update
-void EKF::invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Matrix3d R) {
+void EKF::right_invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Matrix3d R) {
     // Innovation and sensor Jacobian
     manif::SO3d::Jacobian J1, J2;
     J1.setIdentity();
     J2.setIdentity();
 
     Eigen::Vector3d y = z - manif::SO3d(X.quat()).inverse(J1).act(b, J2);
+    //Eigen::Vector3d y = -manif::SO3d(X.quat()).act(z, J1) + b;
 
     Eigen::Matrix3d H_rot = J2 * J1;
     Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
@@ -128,6 +129,11 @@ void EKF::invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Matrix3d
 
 
 void EKF::update_imu(Eigen::Vector3d mag, Eigen::Vector3d acc) {
-    invariant_update(acc, Eigen::Vector3d(0.0, 0.0, 9.81), R_Accel);
-    invariant_update(mag, Eigen::Vector3d(0.0, 1.0, 0.0), R_Accel);
+    right_invariant_update(acc, Eigen::Vector3d(0.0, 0.0, 9.81), R_Accel);
+    right_invariant_update(mag, Eigen::Vector3d(0.0, 1.0, 0.0), R_Accel);
+}
+
+void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
+    left_invariant_update(pos, Eigen::Vector3d(0.0, 0.0, 0.0), R_GPS.block<3,3>(0, 0));
+    left_invariant_update(vel, Eigen::Vector3d(0.0, 0.0, 0.0), R_GPS.block<3,3>(0, 0));
 }

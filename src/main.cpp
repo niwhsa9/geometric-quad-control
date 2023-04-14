@@ -92,6 +92,7 @@ int main() {
 
       std::cout << "rot error " << rot_delta.log().weightedNorm() << std::endl;
       std::cout << "pos error " << (gps_pos - ekf.get_state().translation()).norm() << std::endl;
+      std::cout << "vel error" << (gps_vel - ekf.get_state().linearVelocity()).norm() << std::endl;
       /*
       std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
         //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
