@@ -74,8 +74,8 @@ int main() {
 
     Eigen::Vector3d mag(compass->getValues());
 
-    Eigen::Vector3d noisy_gps_pos = add_noise(gps_pos, nd_gps_pos, gen);
-    Eigen::Vector3d noisy_gps_vel = add_noise(gps_vel, nd_gps_vel, gen);
+    Eigen::Vector3d noisy_gps_pos = gps_pos;//add_noise(gps_pos, nd_gps_pos, gen);
+    Eigen::Vector3d noisy_gps_vel = gps_vel;//add_noise(gps_vel, nd_gps_vel, gen);
     
     // robot teleop
     teleop.keyboard_ctrl();

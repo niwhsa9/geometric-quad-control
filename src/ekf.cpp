@@ -106,7 +106,7 @@ void EKF::right_invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Ma
     J2.setIdentity();
 
     Eigen::Vector3d y = z - manif::SO3d(X.quat()).inverse(J1).act(b, J2);
-    //Eigen::Vector3d y = -manif::SO3d(X.quat()).act(z, J1) + b;
+    //Eigen::Vector3d y = manif::SO3d(X.quat()).act(z, J1) - b;
 
     Eigen::Matrix3d H_rot = J2 * J1;
     Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
@@ -127,7 +127,6 @@ void EKF::right_invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Ma
     P -= K * S * K.transpose();
 }
 
-
 void EKF::update_imu(Eigen::Vector3d mag, Eigen::Vector3d acc) {
     right_invariant_update(acc, Eigen::Vector3d(0.0, 0.0, 9.81), R_Accel);
     right_invariant_update(mag, Eigen::Vector3d(0.0, 1.0, 0.0), R_Accel);
@@ -135,5 +134,43 @@ void EKF::update_imu(Eigen::Vector3d mag, Eigen::Vector3d acc) {
 
 void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     left_invariant_update(pos, Eigen::Vector3d(0.0, 0.0, 0.0), R_GPS.block<3,3>(0, 0));
-    left_invariant_update(vel, Eigen::Vector3d(0.0, 0.0, 0.0), R_GPS.block<3,3>(0, 0));
+
+    Eigen::Vector3d z = vel;
+    Eigen::Vector3d b = Eigen::Vector3d::Zero();
+    Eigen::Matrix3d R = R_GPS.block<3,3>(0, 0);
+
+    manif::SO3d::Jacobian J1, J2, J3, J4;
+    J1.setIdentity();
+    J2.setIdentity();
+
+    Eigen::Vector3d y = -X.asSO3().inverse(J1).act(z, J2) + X.asSO3().inverse().act(X.linearVelocity(), J3, J4);
+
+
+    Eigen::Matrix3d H_rot = J2 * J1;
+    Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
+    H.block<3, 3>(0, 3) = H_rot;
+    H.block<3, 3>(0, 6) = -J4;
+
+    
+    // Innovation covariance
+    Eigen::Matrix<double, 3, 3> S = H * P * H.transpose() + R;//X.asSO3().adj() * R * X.asSO3().adj().transpose();
+
+    // Kalman gain
+    Eigen::Matrix<double, 9, 3> K = P * H.transpose() * S.inverse();
+
+    // State update
+    Eigen::Matrix<double, 9, 1> dx = K * y;
+    X = X.rplus(manif::SE_2_3Tangentd(dx));
+    X.normalize();
+
+    // State Covariance update
+    P -= K * S * K.transpose();
 }
+
+
+/*
+TODO design:
+1. run ekf in its own thread, data updates wake up cv and run update steps
+2. right_invraint_update(std::function<tuple<y,h>(z, b)>) then deduce matrix sizes
+
+*/
