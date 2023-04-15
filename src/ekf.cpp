@@ -10,8 +10,8 @@ EKF::EKF(
 Q(proc_noise), R_Accel(accel_noise), R_GPS(gps_noise), dt(dt),
 X(Eigen::Vector3d::Zero(), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero())
 {
-    //X.setIdentity();
-    //X.quat();
+    X.setIdentity();
+    ////X.quat();
     P.setZero();
 }
 

@@ -1,4 +1,5 @@
 #include "manif/SE_2_3.h"
+#include <concepts>
 #include <Eigen/Dense>
 
 class EKF {
@@ -21,6 +22,11 @@ class EKF {
     private:
         void right_invariant_update(Eigen::Vector3d, Eigen::Vector3d, Eigen::Matrix3d);
         void left_invariant_update(Eigen::Vector3d, Eigen::Vector3d, Eigen::Matrix3d);
+
+        template <typename Callable>
+        void obv_update(Eigen::Vector3d z, Callable obv_model, Eigen::Matrix3d R) 
+        requires std::invocable<Callable, manif::SE3d>;
+        // need a concept for return Tuple[H, Vec3d]
 
         State X;
         ProcNoiseMat P, Q;
