@@ -101,30 +101,32 @@ void EKF::left_invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Mat
 // Right Invariant EKF update
 void EKF::right_invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Matrix3d R) {
     // Innovation and sensor Jacobian
-    manif::SO3d::Jacobian J1, J2;
+    manif::SO3d::Jacobian J1;
     J1.setIdentity();
-    J2.setIdentity();
 
-    Eigen::Vector3d y = z - manif::SO3d(X.quat()).inverse(J1).act(b, J2);
-    //Eigen::Vector3d y = manif::SO3d(X.quat()).act(z, J1) - b;
+    Eigen::Vector3d y = manif::SO3d(X.quat()).act(z, J1) - b;
 
-    Eigen::Matrix3d H_rot = J2 * J1;
+    Eigen::Matrix3d H_rot = J1;//Eigen::Matrix3d::Identity();//J1 * X.asSO3().adj();
     Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
     H.block<3, 3>(0, 3) = H_rot;
+    //std::cout << H_rot << std::endl;
+
+    ProcNoiseMat P_left = X.adj() * P * X.adj().transpose();
     
     // Innovation covariance
-    Eigen::Matrix<double, 3, 3> S = H * P * H.transpose() + R;//X.asSO3().adj() * R * X.asSO3().adj().transpose();
+    Eigen::Matrix<double, 3, 3> S = H * P_left * H.transpose() + R;
 
     // Kalman gain
-    Eigen::Matrix<double, 9, 3> K = P * H.transpose() * S.inverse();
+    Eigen::Matrix<double, 9, 3> K = P_left * H.transpose() * S.inverse();
 
     // State update
     Eigen::Matrix<double, 9, 1> dx = K * y;
-    X = X.rplus(manif::SE_2_3Tangentd(dx));
+    X = manif::SE_2_3Tangentd(dx) + X;
     X.normalize();
 
     // State Covariance update
-    P -= K * S * K.transpose();
+    P = X.adj().inverse() * (P_left - K * S * K.transpose()) * X.adj().inverse().transpose();
+    //P = X.inverse().adj() * (P_left - K * S * K.transpose()) * X.inverse().adj().transpose();
 }
 
 void EKF::update_imu(Eigen::Vector3d mag, Eigen::Vector3d acc) {
@@ -133,38 +135,7 @@ void EKF::update_imu(Eigen::Vector3d mag, Eigen::Vector3d acc) {
 }
 
 void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
-    left_invariant_update(pos, Eigen::Vector3d(0.0, 0.0, 0.0), R_GPS.block<3,3>(0, 0));
-
-    Eigen::Vector3d z = vel;
-    Eigen::Vector3d b = Eigen::Vector3d::Zero();
-    Eigen::Matrix3d R = R_GPS.block<3,3>(0, 0);
-
-    manif::SO3d::Jacobian J1, J2, J3, J4;
-    J1.setIdentity();
-    J2.setIdentity();
-
-    Eigen::Vector3d y = -X.asSO3().inverse(J1).act(z, J2) + X.asSO3().inverse().act(X.linearVelocity(), J3, J4);
-
-
-    Eigen::Matrix3d H_rot = J2 * J1;
-    Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
-    H.block<3, 3>(0, 3) = H_rot;
-    H.block<3, 3>(0, 6) = -J4;
-
-    
-    // Innovation covariance
-    Eigen::Matrix<double, 3, 3> S = H * P * H.transpose() + R;//X.asSO3().adj() * R * X.asSO3().adj().transpose();
-
-    // Kalman gain
-    Eigen::Matrix<double, 9, 3> K = P * H.transpose() * S.inverse();
-
-    // State update
-    Eigen::Matrix<double, 9, 1> dx = K * y;
-    X = X.rplus(manif::SE_2_3Tangentd(dx));
-    X.normalize();
-
-    // State Covariance update
-    P -= K * S * K.transpose();
+    //left_invariant_update(pos, Eigen::Vector3d(0.0, 0.0, 0.0), R_GPS.block<3,3>(0, 0)); 
 }
 
 
