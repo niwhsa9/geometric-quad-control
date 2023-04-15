@@ -46,12 +46,15 @@ void EKF::left_invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Mat
     // Innovation and sensor Jacobian
     manif::SE_2_3d::Jacobian J1; 
     Eigen::Matrix<double, 3, 9> J2;
-    //J1.setIdentity();
-    //J2.setIdentity();
+    J1.setIdentity();
+    J2.setIdentity();
 
-    Eigen::Vector3d y = -X.inverse(J1).act(z, J2) + b;
+    //Eigen::Vector3d y = -X.inverse(J1).act(z, J2) + b;
+    Eigen::Vector3d y = z - X.act(b, J2);
 
     Eigen::Matrix<double, 3, 9> H = J2 * J1;
+    //std::cout << H << std::endl;
+    //std::cout << X.rotation() << std::endl;
     
     // Innovation covariance
     Eigen::Matrix<double, 3, 3> S = H * P * H.transpose() + R;//X.asSO3().adj() * R * X.asSO3().adj().transpose();
@@ -143,13 +146,13 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     J1.setIdentity();
     J2.setIdentity();
 
-    Eigen::Vector3d y = -X.asSO3().inverse(J1).act(z, J2) + X.asSO3().inverse().act(X.linearVelocity(), J3, J4);
-
+    //Eigen::Vector3d y = -X.asSO3().inverse(J1).act(z, J2) + X.asSO3().inverse().act(X.linearVelocity(), J3, J4);
+    Eigen::Vector3d y = z - X.linearVelocity();
 
     Eigen::Matrix3d H_rot = J2 * J1;
     Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
-    H.block<3, 3>(0, 3) = H_rot;
-    H.block<3, 3>(0, 6) = -J4;
+    //H.block<3, 3>(0, 3) = H_rot;
+    H.block<3, 3>(0, 6) = X.rotation();//Eigen::Matrix3d::Identity();
 
     
     // Innovation covariance
