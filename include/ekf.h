@@ -2,6 +2,10 @@
 #include <Eigen/Dense>
 #include "manif/SE_2_3.h"
 #include <tuple>
+#include <mutex>
+#include <condition_variable>
+#include <queue>
+#include <variant>
 
 namespace amg {
     // Returns concept checks lambda return type
@@ -24,16 +28,14 @@ class EKF {
 
         EKF(const ProcNoiseMat&, const ObvNoiseMatAccel&, const ObvNoiseMatGPS&, double);
         EKF(const EKF&) = delete;
+        EKF& operator=(const EKF&) = delete;
 
         State get_state();
-        void predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &accel);
-        void update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel);
-        void update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc);
+        virtual void predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &accel);
+        virtual void update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel);
+        virtual void update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc);
 
     private:
-        void right_invariant_update(Eigen::Vector3d, Eigen::Vector3d, Eigen::Matrix3d);
-        void left_invariant_update(Eigen::Vector3d, Eigen::Vector3d, Eigen::Matrix3d);
-
         template <typename Callable>
         void obv_update(const Eigen::Vector3d &z, Callable obv_model, const Eigen::Matrix3d &R) requires 
             std::invocable<Callable, manif::SE_2_3d&> && 
@@ -63,5 +65,31 @@ class EKF {
         ObvNoiseMatGPS R_GPS;
         ObvNoiseMatAccel R_Accel;
         double dt;
-        
+};
+
+class EKFWorker : public EKF {
+
+    using EKF::EKF;
+
+    public:
+        void predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &accel) override;
+        void update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel) override;
+        void update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc) override;
+
+    private: 
+        std::mutex mtx;
+        std::condition_variable cv;
+
+        struct Predict {
+            Eigen::Vector3d gyro, accel;
+        };
+        struct GpsUpdate {
+            Eigen::Vector3d pos, vel;
+        };
+        struct ImuUpdate {
+            Eigen::Vector3d mag, accel;
+        };
+
+        using WorkType = std::variant<Predict, GpsUpdate, ImuUpdate>;
+        std::queue<WorkType> work_queue;
 };

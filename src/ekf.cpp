@@ -1,6 +1,7 @@
 #include "ekf.h"
 #include <iostream>
 #include <manif/impl/se3/SE3.h>
+#include <mutex>
 
 EKF::EKF(
     const ProcNoiseMat &proc_noise, 
@@ -37,35 +38,6 @@ void EKF::predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &accel) {
 
     // Prediction state covariance
     P = F * P * F.transpose() + Q; 
-}
-
-// Right Invariant EKF update
-void EKF::right_invariant_update(Eigen::Vector3d z, Eigen::Vector3d b, Eigen::Matrix3d R) {
-    // Innovation and sensor Jacobian
-    manif::SO3d::Jacobian J1, J2;
-    J1.setIdentity();
-    J2.setIdentity();
-
-    Eigen::Vector3d y = z - manif::SO3d(X.quat()).inverse(J1).act(b, J2);
-    //Eigen::Vector3d y = manif::SO3d(X.quat()).act(z, J1) - b;
-
-    Eigen::Matrix3d H_rot = J2 * J1;
-    Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
-    H.block<3, 3>(0, 3) = H_rot;
-    
-    // Innovation covariance
-    Eigen::Matrix<double, 3, 3> S = H * P * H.transpose() + R;//X.asSO3().adj() * R * X.asSO3().adj().transpose();
-
-    // Kalman gain
-    Eigen::Matrix<double, 9, 3> K = P * H.transpose() * S.inverse();
-
-    // State update
-    Eigen::Matrix<double, 9, 1> dx = K * y;
-    X = X.rplus(manif::SE_2_3Tangentd(dx));
-    X.normalize();
-
-    // State Covariance update
-    P -= K * S * K.transpose();
 }
 
 void EKF::update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc) {
@@ -110,10 +82,24 @@ void EKF::update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel) {
         R_GPS.block<3, 3>(3, 3));
 }
 
-/*
-TODO design:
-1. run ekf in its own thread, data updates wake up cv and run update steps
-2. right_invraint_update(std::function<tuple<y,h>(z, b)>) then deduce matrix sizes
-3. change to correct forms
 
-*/
+void EKFWorker::predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &accel) {
+    std::unique_lock<std::mutex> lock(mtx);
+    _gyro = gyro;
+    _acc = accel;
+    work_queue.push(WorkType::PREDICT);
+    cv.notify_one();    
+}
+void EKFWorker::update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel) {
+    std::unique_lock<std::mutex> lock(mtx);
+    _pos = pos;
+    _vel = vel;
+    cv.notify_one();    
+}
+void EKFWorker::update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc) {
+    std::unique_lock<std::mutex> lock(mtx);
+    _mag = mag;
+    _acc = acc;
+    cv.notify_one();    
+}
+
