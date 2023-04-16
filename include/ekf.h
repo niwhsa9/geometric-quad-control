@@ -19,27 +19,30 @@ class EKF {
         using ProcNoiseMat = Eigen::Matrix<double, 9, 9>;
         using ObvNoiseMatAccel = Eigen::Matrix3d;
         using ObvNoiseMatGPS = Eigen::Matrix<double, 6, 6>;
-        using ObvJacobian = Eigen::Matrix<double, 9, 3>;
+        using ObvJacobian = Eigen::Matrix<double, 3, 9>;
         using State = manif::SE_2_3d;
 
-        EKF(ProcNoiseMat, ObvNoiseMatAccel, ObvNoiseMatGPS, double);
+        EKF(const ProcNoiseMat&, const ObvNoiseMatAccel&, const ObvNoiseMatGPS&, double);
         EKF(const EKF&) = delete;
 
         State get_state();
-        void predict(Eigen::Vector3d gyro, Eigen::Vector3d accel);
-        void update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel);
-        void update_imu(Eigen::Vector3d mag, Eigen::Vector3d acc);
+        void predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &accel);
+        void update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel);
+        void update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc);
 
     private:
         void right_invariant_update(Eigen::Vector3d, Eigen::Vector3d, Eigen::Matrix3d);
         void left_invariant_update(Eigen::Vector3d, Eigen::Vector3d, Eigen::Matrix3d);
 
         template <typename Callable>
-        void obv_update(Eigen::Vector3d z, Callable obv_model, Eigen::Matrix3d R) 
-            requires std::invocable<Callable, manif::SE_2_3d> && 
-            amg::returns<Callable, std::tuple<Eigen::Vector3d, ObvJacobian>, manif::SE_2_3d> {
+        void obv_update(const Eigen::Vector3d &z, Callable obv_model, const Eigen::Matrix3d &R) requires 
+            std::invocable<Callable, manif::SE_2_3d&> && 
+            amg::returns<Callable, std::tuple<Eigen::Vector3d, ObvJacobian>, manif::SE_2_3d&> 
+        {
+            auto [z_hat, H] = std::move(obv_model(X));
 
-            auto [y, H] =  obv_model(X);
+            // Innovation
+            Eigen::Vector3d y = z - z_hat;
 
             Eigen::Matrix<double, 3, 3> S = H * P * H.transpose() + R;
 
