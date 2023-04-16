@@ -11,7 +11,6 @@ Q(proc_noise), R_Accel(accel_noise), R_GPS(gps_noise), dt(dt),
 X(Eigen::Vector3d::Zero(), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero())
 {
     X.setIdentity();
-    ////X.quat();
     P.setZero();
 }
 
@@ -21,7 +20,6 @@ EKF::State EKF::get_state() {
 }
 
 // Discrete time state propogation
-// For SE_2 (3) velocity component is world frame velocity
 void EKF::predict(Eigen::Vector3d gyro, Eigen::Vector3d accel) {
     Eigen::Vector3d gravity(0.0, 0.0, 9.81);
     Eigen::Matrix3d R_body_in_world = X.rotation();
@@ -154,7 +152,7 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     //H.block<3, 3>(0, 3) = H_rot;
     H.block<3, 3>(0, 6) = X.rotation();//Eigen::Matrix3d::Identity();
 
-    
+     
     // Innovation covariance
     Eigen::Matrix<double, 3, 3> S = H * P * H.transpose() + R;//X.asSO3().adj() * R * X.asSO3().adj().transpose();
 
@@ -169,7 +167,6 @@ void EKF::update_gps(Eigen::Vector3d pos, Eigen::Vector3d vel) {
     // State Covariance update
     P -= K * S * K.transpose();
 }
-
 
 /*
 TODO design:
