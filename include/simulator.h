@@ -36,7 +36,7 @@ class SimQuadcopter {
             rear_right_motor(robot->getMotor("rear right propeller")),
             rd(),
             gen(rd()),
-            nd_gps_pos(0.0, 0.1),
+            nd_gps_pos(0.0, 0.15),
             nd_gps_vel(0.0, 0.04),
             nd_accel(0.0, 0.04),
             nd_gyro(0.0, 0.01),

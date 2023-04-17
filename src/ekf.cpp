@@ -9,9 +9,10 @@ EKF::EKF(
     const ProcNoiseMat &proc_noise, 
     const ObvNoiseMatAccel &accel_noise, 
     const ObvNoiseMatGPS &gps_noise, 
+    const ObvNoiseMatMag &mag_noise, 
     double dt
     ): 
-Q(proc_noise), R_Accel(accel_noise), R_GPS(gps_noise), dt(dt),
+Q(proc_noise), R_Accel(accel_noise), R_GPS(gps_noise), R_Mag(mag_noise), dt(dt),
 X(Eigen::Vector3d::Zero(), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero())
 {
     X.setIdentity();
@@ -63,7 +64,7 @@ void EKF::update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc) {
             H.block<3, 3>(0, 3) = J2 * J1;
             return std::make_tuple<Eigen::Vector3d, ObvJacobian>(std::move(m), std::move(H));
         }, 
-        R_Accel);
+        R_Mag);
 }
 
 void EKF::update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel) {

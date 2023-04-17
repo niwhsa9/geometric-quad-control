@@ -25,11 +25,12 @@ class EKF {
         using Vector9d = Eigen::Matrix<double, 9, 1>;
         using ProcNoiseMat = Eigen::Matrix<double, 9, 9>;
         using ObvNoiseMatAccel = Eigen::Matrix3d;
+        using ObvNoiseMatMag = Eigen::Matrix3d;
         using ObvNoiseMatGPS = Eigen::Matrix<double, 6, 6>;
         using ObvJacobian = Eigen::Matrix<double, 3, 9>;
         using State = manif::SE_2_3d;
 
-        EKF(const ProcNoiseMat&, const ObvNoiseMatAccel&, const ObvNoiseMatGPS&, double);
+        EKF(const ProcNoiseMat&, const ObvNoiseMatAccel&, const ObvNoiseMatGPS&, const ObvNoiseMatMag&, double);
         EKF(const EKF&) = delete;
         EKF& operator=(const EKF&) = delete;
 
@@ -67,6 +68,7 @@ class EKF {
         ProcNoiseMat P, Q;
         ObvNoiseMatGPS R_GPS;
         ObvNoiseMatAccel R_Accel;
+        ObvNoiseMatMag R_Mag;
         double dt;
 };
 

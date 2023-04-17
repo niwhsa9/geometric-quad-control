@@ -22,9 +22,10 @@ int main() {
   SimQuadcopter quad;
 
   EKFWorker ekf(
-    EKF::ProcNoiseMat::Identity()*0.001, 
-    EKF::ObvNoiseMatAccel::Identity() * 0.001,
+    EKF::ProcNoiseMat::Identity()*0.0005, 
+    EKF::ObvNoiseMatAccel::Identity() * 0.1,
     EKF::ObvNoiseMatGPS::Identity() * 0.1,
+    EKF::ObvNoiseMatMag::Identity() * 0.05,
     quad.get_dt()/1000.0
     );
 
