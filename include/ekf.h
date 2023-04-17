@@ -1,3 +1,5 @@
+#pragma once
+
 #include <concepts>
 #include <Eigen/Dense>
 #include "manif/SE_2_3.h"
