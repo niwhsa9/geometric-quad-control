@@ -1,7 +1,9 @@
 #include "ekf.h"
 #include <iostream>
 #include <manif/impl/se3/SE3.h>
+#include <memory>
 #include <mutex>
+#include <variant>
 
 EKF::EKF(
     const ProcNoiseMat &proc_noise, 
@@ -83,23 +85,53 @@ void EKF::update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel) {
 }
 
 
-void EKFWorker::predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &accel) {
+void EKFWorker::predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &acc) {
     std::unique_lock<std::mutex> lock(mtx);
-    _gyro = gyro;
-    _acc = accel;
-    work_queue.push(WorkType::PREDICT);
+    work_queue.push(Predict { gyro, acc } );
     cv.notify_one();    
 }
 void EKFWorker::update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel) {
     std::unique_lock<std::mutex> lock(mtx);
-    _pos = pos;
-    _vel = vel;
+    work_queue.push(GpsUpdate { pos, vel } );
     cv.notify_one();    
 }
 void EKFWorker::update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc) {
     std::unique_lock<std::mutex> lock(mtx);
-    _mag = mag;
-    _acc = acc;
+    work_queue.push(ImuUpdate { mag, acc } );
     cv.notify_one();    
 }
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+void EKFWorker::dispatch() {
+    std::unique_lock<std::mutex> lock(mtx);
+    cv.wait(lock, [this]{ return !work_queue.empty();});    
+
+    while(!work_queue.empty()) {
+        auto job = work_queue.front();
+        work_queue.pop();
+
+        auto visitor = overloaded {
+            [this](const Predict& p) { EKF::predict(p.gyro, p.acc); },
+            [this](const GpsUpdate& u) {  EKF::update_gps(u.pos, u.vel);  },
+            [this](const ImuUpdate& u) { EKF::update_imu(u.mag, u.acc);  },
+        };
+        std::visit(visitor, job);
+
+    }
+}
+
+EKFWorker::State EKFWorker::get_state() {
+    std::unique_lock<std::mutex> lock(mtx);
+    return X;
+}
+
+void EKFWorker::loop_ekf() {
+    thread = std::make_unique<std::thread>([this] {
+        while(true) {
+            dispatch();
+
+        }
+    });
+}

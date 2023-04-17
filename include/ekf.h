@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <queue>
 #include <variant>
+#include <thread>
 
 namespace amg {
     // Returns concept checks lambda return type
@@ -30,12 +31,12 @@ class EKF {
         EKF(const EKF&) = delete;
         EKF& operator=(const EKF&) = delete;
 
-        State get_state();
-        virtual void predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &accel);
+        virtual State get_state();
+        virtual void predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &acc);
         virtual void update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel);
         virtual void update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc);
 
-    private:
+    protected:
         template <typename Callable>
         void obv_update(const Eigen::Vector3d &z, Callable obv_model, const Eigen::Matrix3d &R) requires 
             std::invocable<Callable, manif::SE_2_3d&> && 
@@ -72,22 +73,27 @@ class EKFWorker : public EKF {
     using EKF::EKF;
 
     public:
-        void predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &accel) override;
+        void loop_ekf();
+        void predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &acc) override;
         void update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel) override;
         void update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc) override;
+        State get_state() override;
 
     private: 
         std::mutex mtx;
         std::condition_variable cv;
+        std::unique_ptr<std::thread> thread;
+
+        void dispatch();
 
         struct Predict {
-            Eigen::Vector3d gyro, accel;
+            Eigen::Vector3d gyro, acc;
         };
         struct GpsUpdate {
             Eigen::Vector3d pos, vel;
         };
         struct ImuUpdate {
-            Eigen::Vector3d mag, accel;
+            Eigen::Vector3d mag, acc;
         };
 
         using WorkType = std::variant<Predict, GpsUpdate, ImuUpdate>;

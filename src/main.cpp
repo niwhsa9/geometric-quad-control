@@ -46,12 +46,14 @@ int main() {
   inertial->enable(dt);
   compass->enable(dt);
 
-  EKF ekf(
+  EKFWorker ekf(
     EKF::ProcNoiseMat::Identity()*0.001, 
     EKF::ObvNoiseMatAccel::Identity() * 0.001,
     EKF::ObvNoiseMatGPS::Identity() * 0.1,
     dt/1000.0
     );
+
+  ekf.loop_ekf();
 
   int iter_cnt = 0;
 
