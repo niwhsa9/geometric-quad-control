@@ -26,8 +26,8 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
 
     Eigen::Vector3d fl(0.110, 0.1375, 0);
     Eigen::Vector3d fr(0.110, -0.1375, 0);
-    Eigen::Vector3d bl(-0.110, -0.1375, 0);
-    Eigen::Vector3d br(-0.110, 0.1375, 0);
+    Eigen::Vector3d bl(-0.110, 0.1375, 0);
+    Eigen::Vector3d br(-0.110, -0.1375, 0);
 
     // Map from angular velocity to torque
     Eigen::Matrix<double, 4, 4> F;
@@ -38,11 +38,18 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
     -cd*e3 + cf*fr.cross(e3);
     Eigen::Vector4d q;
     q << f_z, tau;
+
     std::cout << q << std::endl;
 
-    std::cout << F << std::endl;
-    std::cout << F.inverse() << std::endl;
-    return F.colPivHouseholderQr().solve (q);
+    //std::cout << F << std::endl;
+    //std::cout << F.inverse() << std::endl;
+    //std::cout << F.colPivHouseholderQr().solve (q) << std::endl;
+    //std::cout << F.inverse() * q << std::endl;
+    //return F.colPivHouseholderQr().solve (q);
+    Eigen::Vector4d vel_square = (F.inverse() *q);
+    //vel_square.sqrt();
+    //Eigen::sqrt(vel_square);
+    return vel_square.cwiseSqrt();
 
 
 }
