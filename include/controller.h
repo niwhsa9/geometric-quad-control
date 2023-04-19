@@ -24,7 +24,7 @@ class Controller {
         State track_target(const Eigen::Vector4d &y, const std::optional<manif::SO3d> &prev_attitude);
 
     private:
-        double kp = 5, kv = 0.0001, kr = 0.001, komega = 0.001;
+        double kp = 0.4, kv = 0.0000, kr = 0.01, komega = 0.000;
 
         // Thrust coefficient newton/(rad/s)^2
         double cf = 0.00026 ;//* 1.0/10.0;

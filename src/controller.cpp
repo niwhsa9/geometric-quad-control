@@ -25,17 +25,17 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
     Eigen::Vector3d tau = -kr * e_r - komega * e_omega + X.omega.cross(I * X.omega);
 
     Eigen::Vector3d fl(0.110, 0.1375, 0);
-    Eigen::Vector3d fr(0.110, -0.1375, 0);
     Eigen::Vector3d bl(-0.110, 0.1375, 0);
     Eigen::Vector3d br(-0.110, -0.1375, 0);
+    Eigen::Vector3d fr(0.110, -0.1375, 0);
 
     // Map from angular velocity to torque
     Eigen::Matrix<double, 4, 4> F;
     F << cf, cf, cf, cf,
     cd*e3 + cf*fl.cross(e3),
-    -cd*e3 + cf*bl.cross(e3),
+    -cd*e3 + cf*bl.cross(e3), //-1
     cd*e3 + cf*br.cross(e3),
-    -cd*e3 + cf*fr.cross(e3);
+    -cd*e3 + cf*fr.cross(e3); //-
     Eigen::Vector4d q;
     q << f_z, tau;
 
