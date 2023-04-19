@@ -14,6 +14,7 @@
 #include <memory>
 #include "ekf.h"
 #include "simulator.h"
+#include "controller.h"
 #include <random>
 
 using namespace webots;
@@ -31,11 +32,13 @@ int main() {
 
   ekf.loop_ekf();
 
+  Controller ctrl;
+
   while (true) {
     quad.step_sim();
 
     // robot teleop
-    quad.keyboard_ctrl();
+    //quad.keyboard_ctrl();
 
     auto omega = quad.get_gyro();
     auto a = quad.get_accel();
@@ -52,6 +55,14 @@ int main() {
       //omega.setZero();
       ekf.predict(omega, a);
       auto state = ekf.get_state();
+
+      manif::SE_2_3d des
+        (Eigen::Vector3d(0.0, 0.0, 5.0), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero());
+      //des.translation();
+      Eigen::Vector4d cmd = ctrl.iterate_ctrl(Controller::State{state, omega, a}, 
+        Controller::State{des, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()});
+      quad.set_vel(cmd);
+
 
       auto rot_delta = ekf.get_state().asSO3().between(manif::SO3d(cheater_rot));
       ekf.update_imu(mag, a);

@@ -10,6 +10,7 @@ find_package(manif  REQUIRED )
 file(GLOB QUADCONTROL_SRC
      "include/*.h"
      "src/*.cpp"
+     "src/controller.cpp"
 )
 
 link_directories(${WEBOTS_HOME}/lib)

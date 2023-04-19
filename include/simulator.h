@@ -172,6 +172,13 @@ class SimQuadcopter {
             return dt;
         }
 
+        void set_vel(Eigen::Vector4d v) {
+            front_left_motor->setVelocity(v[0]);
+            rear_left_motor->setVelocity(v[1]);
+            rear_right_motor->setVelocity(v[2]); 
+            front_right_motor->setVelocity(v[3]);
+        }
+
     private:
 
         Eigen::Vector3d add_noise(Eigen::Vector3d vec, std::normal_distribution<double> &nd, std::mt19937 &gen) {
