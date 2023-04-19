@@ -47,9 +47,11 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
     //std::cout << F.inverse() * q << std::endl;
     //return F.colPivHouseholderQr().solve (q);
     Eigen::Vector4d vel_square = (F.inverse() *q);
+    //std::cout << vel_square.cwiseSqrt();
     //vel_square.sqrt();
     //Eigen::sqrt(vel_square);
-    return vel_square.cwiseSqrt();
+    std::cout << vel_square << std::endl;
+    return vel_square.cwiseAbs().cwiseSqrt().array() * vel_square.cwiseSign().array();
 
 
 }

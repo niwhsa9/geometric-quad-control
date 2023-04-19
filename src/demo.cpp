@@ -62,6 +62,7 @@ int main() {
       Eigen::Vector4d cmd = ctrl.iterate_ctrl(Controller::State{state, omega, a}, 
         Controller::State{des, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()});
       quad.set_vel(cmd);
+      std::cout << "vel cmd " << cmd << std::endl;
 
 
       auto rot_delta = ekf.get_state().asSO3().between(manif::SO3d(cheater_rot));
@@ -72,8 +73,8 @@ int main() {
       //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
       //std::cout << "pos error " << (gps_pos - ekf.get_state().translation()).norm() << std::endl;
       //std::cout << "vel error" << (gps_vel - ekf.get_state().linearVelocity()).norm() << std::endl;
-      std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
-        "truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
+      //std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
+      //  "truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
 
     }
   }
