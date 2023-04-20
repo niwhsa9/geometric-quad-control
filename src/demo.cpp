@@ -52,17 +52,18 @@ int main() {
 
     // TODO skip start iterations due to strange contact forces at init in sim
     if(!isnan(a.x()) && !isnan(gps_pos.x())) {
-      //omega.setZero();
-      ekf.predict(omega, a);
-      auto state = ekf.get_state();
+      //ekf.predict(omega, a);
+      //auto state = ekf.get_state();
+      auto state = manif::SE_2_3d(cheater_pos, cheater_rot, cheater_vel);
+
 
       manif::SE_2_3d des
-        (Eigen::Vector3d(0.0, 0.0, 5.0), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero());
+        (Eigen::Vector3d(0.0, 0.0, 2.0), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero());
       //des.translation();
       Eigen::Vector4d cmd = ctrl.iterate_ctrl(Controller::State{state, omega, a}, 
         Controller::State{des, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()});
       quad.set_vel(cmd);
-      std::cout << "vel cmd " << cmd << std::endl;
+      std::cout << "vel cmd " << std::endl << cmd << std::endl;
 
 
       auto rot_delta = ekf.get_state().asSO3().between(manif::SO3d(cheater_rot));

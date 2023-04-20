@@ -1,5 +1,6 @@
 #include "controller.h"
 #include <iostream>
+#include <manif/impl/so3/SO3.h>
 
 
 Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
@@ -12,6 +13,10 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
     Eigen::Matrix3d e_r_hat = 0.5 * (X_d.X.rotation().transpose() * X.X.rotation() - 
         X.X.rotation().transpose() * X_d.X.rotation());
     Eigen::Vector3d e_r(e_r_hat(2, 1), e_r_hat(0, 2), e_r_hat(1, 0));
+
+    //Eigen::Matrix3d t = X_d.X.rotation().transpose() * X.X.rotation();
+    //Eigen::Matrix3d t = X_d.X.rotation().transpose() * X.X.rotation();
+    //Eigen::Vector3d e_r(manif::SO3d(Eigen::Quaterniond(t)).log().coeffs());
     Eigen::Vector3d e_omega = X.omega - X.X.rotation().transpose() * X_d.X.rotation() * X_d.omega;
 
     Eigen::Vector3d g(0.0, 0.0, 9.81);
@@ -39,18 +44,19 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
     Eigen::Vector4d q;
     q << f_z, tau;
 
+    std::cout << "Error P" << std::endl;
+    std::cout << e_p << std::endl;
+    std::cout << "Error R" << std::endl;
+    std::cout << e_r/e_r.norm()<< std::endl;
+    //Eigen::Vector3d n = X_d.X.asSO3().between(X.X.asSO3()).log().coeffs();
+    //std::cout <<  n/ n.norm()<< std::endl;
+    std::cout << "CMD" << std::endl;
     std::cout << q << std::endl;
 
-    //std::cout << F << std::endl;
-    //std::cout << F.inverse() << std::endl;
-    //std::cout << F.colPivHouseholderQr().solve (q) << std::endl;
-    //std::cout << F.inverse() * q << std::endl;
-    //return F.colPivHouseholderQr().solve (q);
     Eigen::Vector4d vel_square = (F.inverse() *q);
-    //std::cout << vel_square.cwiseSqrt();
-    //vel_square.sqrt();
-    //Eigen::sqrt(vel_square);
-    std::cout << vel_square << std::endl;
+
+    
+
     return vel_square.cwiseAbs().cwiseSqrt().array() * vel_square.cwiseSign().array();
 
 
