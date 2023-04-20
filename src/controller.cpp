@@ -23,11 +23,11 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
     Eigen::Vector3d e3(0, 0, 1);
 
     // Force control law projects ideal correction force onto vehicle z
-    double f_z = (-kp * e_p - kv * e_v + mass * g + mass * X_d.acc).dot(X.X.rotation()*e3);
+    double f_z = 9.81*0.7;//(-kp * e_p - kv * e_v + mass * g + mass * X_d.acc).dot(X.X.rotation()*e3);
 
     // Torque control law stabilizes attitude 
     // TODO higher order terms neglected
-    Eigen::Vector3d tau = -kr * e_r - komega * e_omega + X.omega.cross(I * X.omega);
+    Eigen::Vector3d tau = -kr * e_r;//- komega * e_omega + X.omega.cross(I * X.omega);
 
     Eigen::Vector3d fl(0.110, 0.1375, 0);
     Eigen::Vector3d bl(-0.110, 0.1375, 0);

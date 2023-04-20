@@ -58,9 +58,11 @@ int main() {
 
 
       manif::SE_2_3d des
-        (Eigen::Vector3d(0.0, 0.0, 2.0), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero());
+        (Eigen::Vector3d(0.0, 0.0, 5.0), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero());
       //des.translation();
-      Eigen::Vector4d cmd = ctrl.iterate_ctrl(Controller::State{state, omega, a}, 
+
+      Eigen::Vector3d accel_in_body = a - state.rotation().transpose()*Eigen::Vector3d(0.0, 0.0, 9.81);
+      Eigen::Vector4d cmd = ctrl.iterate_ctrl(Controller::State{state, omega, accel_in_body}, 
         Controller::State{des, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()});
       quad.set_vel(cmd);
       std::cout << "vel cmd " << std::endl << cmd << std::endl;
