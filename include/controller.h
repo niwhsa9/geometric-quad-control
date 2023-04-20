@@ -16,15 +16,21 @@ class Controller {
             Eigen::Vector3d omega;
             Eigen::Vector3d acc;
         };
+
+        struct FlatOutput {
+            Eigen::Vector3d pos, vel, acc;
+            double yaw;
+        };
+
         // Computes rotor velocities based on tracking errors
         Eigen::Vector4d iterate_ctrl(const State &X, const State &X_d);
 
         // Uses differential flatness in [x, y, z, yaw] to compute the desired
         // attitude and angular velocity to track
-        State track_target(const Eigen::Vector4d &y, const std::optional<manif::SO3d> &prev_attitude);
+        Eigen::Vector4d track_target(const FlatOutput &y, const State &X, const std::optional<manif::SO3d> &prev_attitude);
 
     private:
-        double kp = 1.0, kv = 0.0, kr = 0.04, komega = 0.0;
+        double kp = 0.3, kv = 0.0, kr = 0.04, komega = 0.0;
 
         // Thrust coefficient newton/(rad/s)^2
         double cf = 0.00026 ;//* 1.0/10.0;

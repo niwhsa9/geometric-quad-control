@@ -4,7 +4,6 @@
 
 
 Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
-    //I = Eigen::Matrix3cd::Ze
     I << 0.000913, 0, -0.000357, 0, 0.00236, 0, -0.000357, 0, 0.00279;
 
     // Tracking errors
@@ -23,11 +22,11 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
     Eigen::Vector3d e3(0, 0, 1);
 
     // Force control law projects ideal correction force onto vehicle z
-    double f_z = 9.81*0.7;//(-kp * e_p - kv * e_v + mass * g + mass * X_d.acc).dot(X.X.rotation()*e3);
+    double f_z = (-kp * e_p - kv * e_v + mass * g + mass * X_d.acc).dot(X.X.rotation()*e3);
 
     // Torque control law stabilizes attitude 
     // TODO higher order terms neglected
-    Eigen::Vector3d tau = -kr * e_r;//- komega * e_omega + X.omega.cross(I * X.omega);
+    Eigen::Vector3d tau = -kr * e_r - komega * e_omega + X.omega.cross(I * X.omega);
 
     Eigen::Vector3d fl(0.110, 0.1375, 0);
     Eigen::Vector3d bl(-0.110, 0.1375, 0);
@@ -55,13 +54,30 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
 
     Eigen::Vector4d vel_square = (F.inverse() *q);
     return vel_square.cwiseAbs().cwiseSqrt().array() * vel_square.cwiseSign().array();
-
-
 }
-/*
-Controller::State track_target(const Eigen::Vector4d &y, const std::optional<manif::SO3d> &prev_attitude) {
+
+Eigen::Vector4d Controller::track_target(const FlatOutput &y, const State &X, const std::optional<manif::SO3d> &prev_attitude) {
     // Determine desired attitude
+    Eigen::Vector3d e_p = X.X.translation() - y.pos;
+    Eigen::Vector3d e_v = X.X.linearVelocity() - y.vel;
+    Eigen::Vector3d g(0.0, 0.0, 9.81);
+    Eigen::Vector3d f_z = -kp * e_p - kv * e_v + mass * g + mass * y.acc;
+
+    Eigen::Vector3d z_w_d = f_z/f_z.norm();
+    Eigen::Vector3d x_w_d(cos(y.yaw), sin(y.yaw), 0);
+
+    Eigen::Vector3d a = z_w_d.cross(x_w_d);
+    Eigen::Vector3d b = (z_w_d.cross(x_w_d)).cross(z_w_d);
+
+    Eigen::Matrix3d R_w_d;
+    R_w_d.block<3, 1>(0, 2) = z_w_d;
+    R_w_d.block<3, 1>(0, 1) = a/a.norm();
+    R_w_d.block<3, 1>(0, 0) = b/b.norm();
 
     // Determine desired angular rate by numerical differentiation
+    // TODO
+    State target{manif::SE_2_3d(y.pos, Eigen::Quaterniond(R_w_d), y.vel), Eigen::Vector3d::Zero(), y.acc};
+
+    return iterate_ctrl(X, target);
+
 }
-*/
