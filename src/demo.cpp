@@ -64,11 +64,12 @@ int main() {
         Controller::State{des, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()});
       quad.set_vel(cmd);
       std::cout << "vel cmd " << std::endl << cmd << std::endl;
+      //quad.set_vel(Eigen::Vector4d(0.0, 0.0, 0.0,1.0));
 
 
       auto rot_delta = ekf.get_state().asSO3().between(manif::SO3d(cheater_rot));
-      ekf.update_imu(mag, a);
-      ekf.update_gps(gps_pos, gps_vel);
+      //ekf.update_imu(mag, a);
+      //ekf.update_gps(gps_pos, gps_vel);
 
       //std::cout << "rot error " << rot_delta.log().weightedNorm() << std::endl;
       //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
