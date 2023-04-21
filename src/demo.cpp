@@ -64,18 +64,17 @@ int main() {
 
       Eigen::Vector3d accel_in_body = a - state.rotation().transpose()*Eigen::Vector3d(0.0, 0.0, 9.81);
 
-      /*
       Eigen::Vector4d cmd = ctrl.iterate_ctrl(Controller::State{state, omega, accel_in_body}, 
         Controller::State{des, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()});
-      */
+
       Controller::FlatOutput d_o{Eigen::Vector3d(0.0, 0.0, 5.0), Eigen::Vector3d::Zero(),
         Eigen::Vector3d::Zero(), 0};
       Controller::State cur_state{state, omega, accel_in_body};
 
-      Eigen::Vector4d cmd = ctrl.track_target(d_o, cur_state, std::nullopt);
+      //Eigen::Vector4d cmd = ctrl.track_target(d_o, cur_state, std::nullopt);
 
       quad.set_vel(cmd);
-      std::cout << "vel cmd " << std::endl << cmd << std::endl;
+      //std::cout << "vel cmd " << std::endl << cmd << std::endl;
 
 
       auto rot_delta = ekf.get_state().asSO3().between(manif::SO3d(cheater_rot));

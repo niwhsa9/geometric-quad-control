@@ -22,7 +22,7 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
     Eigen::Vector3d e3(0, 0, 1);
 
     // Force control law projects ideal correction force onto vehicle z
-    double f_z = (-kp * e_p - kv * e_v + mass * g + mass * X_d.acc).dot(X.X.rotation()*e3);
+    double f_z = 4;//(-kp * e_p - kv * e_v + mass * g + mass * X_d.acc).dot(X.X.rotation()*e3);
 
     // Torque control law stabilizes attitude 
     // TODO higher order terms neglected
