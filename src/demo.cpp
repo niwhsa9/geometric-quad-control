@@ -74,7 +74,7 @@ int main() {
       //Eigen::Vector4d cmd = ctrl.track_target(d_o, cur_state, std::nullopt);
 
       quad.set_vel(cmd);
-      //std::cout << "vel cmd " << std::endl << cmd << std::endl;
+      std::cout << "vel cmd " << std::endl << cmd << std::endl;
 
 
       auto rot_delta = ekf.get_state().asSO3().between(manif::SO3d(cheater_rot));
