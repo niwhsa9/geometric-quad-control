@@ -169,6 +169,10 @@ class SimQuadcopter {
             robot->step(dt);
         }
 
+        double get_time() {
+            return robot->getTime();
+        }
+
         double get_dt() {
             return dt;
         }

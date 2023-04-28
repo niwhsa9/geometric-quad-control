@@ -33,6 +33,8 @@ int main() {
   ekf.loop_ekf();
 
   Controller ctrl;
+  double x, y, z = 0.0;
+  double dx, dy, dz = 0.0;
 
   while (true) {
     quad.step_sim();
@@ -66,7 +68,22 @@ int main() {
       //Eigen::Vector4d cmd = ctrl.iterate_ctrl(Controller::State{state, omega, accel_in_body}, 
         //Controller::State{des, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()});
 
-      Controller::FlatOutput d_o{Eigen::Vector3d(0.0, 0.0, 2.0), Eigen::Vector3d::Zero(),
+      double time = quad.get_time();
+      
+      if(time < 10) {
+        z = quad.get_time() * 0.5;
+        dz = 0.5;
+      } else {
+        double t = (quad.get_time()-10);
+        x =  t * 0.5;
+        dx = 0.5;
+        y = 0.4 * sin(3.14*t);
+        dy = 0.4 * 3.14 * cos(3.14*t);
+        z = 5 + 0.6 * cos(3.14*t);
+        dz = -0.6 * sin(3.14*t) * 3.14;
+      }
+
+      Controller::FlatOutput d_o{Eigen::Vector3d(x, y, z), Eigen::Vector3d(dx, dy, dz),
         Eigen::Vector3d::Zero(), 0};
       Controller::State cur_state{state, omega, accel_in_body};
 
