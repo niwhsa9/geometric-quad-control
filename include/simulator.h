@@ -121,7 +121,7 @@ class SimQuadcopter {
             front_right_motor->setVelocity(-front_right_motor_input);
             rear_left_motor->setVelocity( -rear_left_motor_input);
             rear_right_motor->setVelocity( rear_right_motor_input); 
-            std::cout << front_left_motor_input << ", " << front_right_motor_input << ", " << rear_left_motor_input << ", " << rear_right_motor_input << std::endl;
+            std::cout << front_left_motor_input << ", " << rear_left_motor_input << ", " << rear_right_motor_input << ", " << front_right_motor_input << std::endl;
         };
 
         Eigen::Vector3d get_gyro() {

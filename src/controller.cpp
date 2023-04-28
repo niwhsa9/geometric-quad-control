@@ -36,10 +36,10 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
     // Map from angular velocity to torque
     Eigen::Matrix<double, 4, 4> F;
     F << cf, cf, cf, cf,
-    cd*e3 + cf*fl.cross(e3),
-    -cd*e3 + cf*bl.cross(e3), //-1
-    cd*e3 + cf*br.cross(e3),
-    -cd*e3 + cf*fr.cross(e3); //-
+    -cd*e3 + cf*fl.cross(e3),
+    cd*e3 + cf*bl.cross(e3), //-1
+    -cd*e3 + cf*br.cross(e3),
+    cd*e3 + cf*fr.cross(e3); //-
     Eigen::Vector4d q;
     q << f_z, tau;
 
