@@ -13,20 +13,17 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
         X.X.rotation().transpose() * X_d.X.rotation());
     Eigen::Vector3d e_r(e_r_hat(2, 1), e_r_hat(0, 2), e_r_hat(1, 0));
 
-    //Eigen::Matrix3d t = X_d.X.rotation().transpose() * X.X.rotation();
-    //Eigen::Matrix3d t = X_d.X.rotation().transpose() * X.X.rotation();
-    //Eigen::Vector3d e_r(manif::SO3d(Eigen::Quaterniond(t)).log().coeffs());
     Eigen::Vector3d e_omega = X.omega - X.X.rotation().transpose() * X_d.X.rotation() * X_d.omega;
 
     Eigen::Vector3d g(0.0, 0.0, 9.81);
     Eigen::Vector3d e3(0, 0, 1);
 
     // Force control law projects ideal correction force onto vehicle z
-    double f_z = 6;//(-kp * e_p - kv * e_v + mass * g + mass * X_d.acc).dot(X.X.rotation()*e3);
+    double f_z = (-kp * e_p - kv * e_v + mass * g + mass * X_d.acc).dot(X.X.rotation()*e3);
 
     // Torque control law stabilizes attitude 
     // TODO higher order terms neglected
-    Eigen::Vector3d tau = -kr * e_r;// - komega * e_omega + X.omega.cross(I * X.omega);
+    Eigen::Vector3d tau = -kr * e_r - komega * e_omega + X.omega.cross(I * X.omega);
 
     Eigen::Vector3d fl(0.110, 0.1375, 0);
     Eigen::Vector3d bl(-0.110, 0.1375, 0);
@@ -49,8 +46,8 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
     //std::cout << e_r/e_r.norm()<< std::endl;
     //Eigen::Vector3d n = X_d.X.asSO3().between(X.X.asSO3()).log().coeffs();
     //std::cout <<  n/ n.norm()<< std::endl;
-    //std::cout << "CMD" << std::endl;
-    //std::cout << q << std::endl;
+    std::cout << "CMD" << std::endl;
+    std::cout << q << std::endl;
 
     Eigen::Vector4d vel_square = (F.inverse() *q);
     return vel_square.cwiseAbs().cwiseSqrt().array() * vel_square.cwiseSign().array();

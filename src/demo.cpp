@@ -60,21 +60,20 @@ int main() {
 
       manif::SE_2_3d des
         (Eigen::Vector3d(0.0, 0.0, 5.0), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero());
-      //des.translation();
 
       Eigen::Vector3d accel_in_body = a - state.rotation().transpose()*Eigen::Vector3d(0.0, 0.0, 9.81);
 
-      Eigen::Vector4d cmd = ctrl.iterate_ctrl(Controller::State{state, omega, accel_in_body}, 
-        Controller::State{des, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()});
+      //Eigen::Vector4d cmd = ctrl.iterate_ctrl(Controller::State{state, omega, accel_in_body}, 
+        //Controller::State{des, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero()});
 
-      Controller::FlatOutput d_o{Eigen::Vector3d(0.0, 0.0, 5.0), Eigen::Vector3d::Zero(),
+      Controller::FlatOutput d_o{Eigen::Vector3d(0.0, 0.0, 2.0), Eigen::Vector3d::Zero(),
         Eigen::Vector3d::Zero(), 0};
       Controller::State cur_state{state, omega, accel_in_body};
 
-      //Eigen::Vector4d cmd = ctrl.track_target(d_o, cur_state, std::nullopt);
+      Eigen::Vector4d cmd = ctrl.track_target(d_o, cur_state, std::nullopt);
 
       quad.set_vel(cmd);
-      std::cout << "vel cmd " << std::endl << cmd << std::endl;
+      //std::cout << "vel cmd " << std::endl << cmd << std::endl;
 
 
       auto rot_delta = ekf.get_state().asSO3().between(manif::SO3d(cheater_rot));
@@ -84,7 +83,7 @@ int main() {
       //std::cout << "pos error " << (gps_pos - ekf.get_state().translation()).norm() << std::endl;
       //std::cout << "vel error" << (gps_vel - ekf.get_state().linearVelocity()).norm() << std::endl;
       //std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
-      //  "truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
+        //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
 
     }
   }
