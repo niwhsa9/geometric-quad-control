@@ -46,8 +46,8 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
     //std::cout << e_r/e_r.norm()<< std::endl;
     //Eigen::Vector3d n = X_d.X.asSO3().between(X.X.asSO3()).log().coeffs();
     //std::cout <<  n/ n.norm()<< std::endl;
-    std::cout << "CMD" << std::endl;
-    std::cout << q << std::endl;
+    //std::cout << "CMD" << std::endl;
+    //std::cout << q << std::endl;
 
     Eigen::Vector4d vel_square = (F.inverse() *q);
     return vel_square.cwiseAbs().cwiseSqrt().array() * vel_square.cwiseSign().array();

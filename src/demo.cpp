@@ -54,10 +54,12 @@ int main() {
 
     // TODO skip start iterations due to strange contact forces at init in sim
     if(!isnan(a.x()) && !isnan(gps_pos.x())) {
-      //ekf.predict(omega, a);
+      ekf.predict(omega, a);
+      ekf.update_imu(mag, a);
+      ekf.update_gps(gps_pos, gps_vel);
+
       //auto state = ekf.get_state();
-      //ekf.update_imu(mag, a);
-      //ekf.update_gps(gps_pos, gps_vel);
+
       auto state = manif::SE_2_3d(cheater_pos, cheater_rot, cheater_vel);
 
       manif::SE_2_3d des
@@ -79,8 +81,8 @@ int main() {
         dx = 0.5;
         y = 0.4 * sin(3.14*t);
         dy = 0.4 * 3.14 * cos(3.14*t);
-        z = 5 + 0.6 * cos(3.14*t);
-        dz = -0.6 * sin(3.14*t) * 3.14;
+        z = 5 + 1.2 * cos(3.14*t);
+        dz = -1.2 * sin(3.14*t) * 3.14;
       }
 
       Controller::FlatOutput d_o{Eigen::Vector3d(x, y, z), Eigen::Vector3d(dx, dy, dz),
@@ -101,6 +103,9 @@ int main() {
       //std::cout << "vel error" << (gps_vel - ekf.get_state().linearVelocity()).norm() << std::endl;
       //std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
         //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
+
+      std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
+        "truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
 
     }
   }
