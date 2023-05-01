@@ -30,10 +30,12 @@ int main() {
     quad.get_dt()/1000.0
     );
 
+  std::cout << quad.get_dt() << std::endl;
+
   ekf.loop_ekf();
 
   Controller ctrl;
-  double x, y, z = 0.0;
+  double x, y, z, yaw = 0.0;
   double dx, dy, dz = 0.0;
 
   while (true) {
@@ -79,14 +81,16 @@ int main() {
         double t = (quad.get_time()-10);
         x =  t * 0.5;
         dx = 0.5;
-        y = 0.4 * sin(3.14*t);
-        dy = 0.4 * 3.14 * cos(3.14*t);
-        z = 5 + 1.2 * cos(3.14*t);
-        dz = -1.2 * sin(3.14*t) * 3.14;
+        double T = 3.14/2;
+        y = 1.2 * sin(T*t);
+        dy = 1.2 * T * cos(T*t);
+        z = 5 + 1.2 * cos(T*t);
+        dz = -1.2 * sin(T*t) * T;
+        yaw = 0.0;//t * 0.5;
       }
 
       Controller::FlatOutput d_o{Eigen::Vector3d(x, y, z), Eigen::Vector3d(dx, dy, dz),
-        Eigen::Vector3d::Zero(), 0};
+        Eigen::Vector3d::Zero(), yaw};
       Controller::State cur_state{state, omega, accel_in_body};
 
       Eigen::Vector4d cmd = ctrl.track_target(d_o, cur_state, std::nullopt);
@@ -101,9 +105,6 @@ int main() {
       //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
       //std::cout << "pos error " << (gps_pos - ekf.get_state().translation()).norm() << std::endl;
       //std::cout << "vel error" << (gps_vel - ekf.get_state().linearVelocity()).norm() << std::endl;
-      //std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
-        //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
-
       std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
         "truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
 
