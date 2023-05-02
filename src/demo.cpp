@@ -60,9 +60,9 @@ int main() {
       ekf.update_imu(mag, a);
       ekf.update_gps(gps_pos, gps_vel);
 
-      auto state = ekf.get_state();
+      //auto state = ekf.get_state();
 
-      //auto state = manif::SE_2_3d(cheater_pos, cheater_rot, cheater_vel);
+      auto state = manif::SE_2_3d(cheater_pos, cheater_rot, cheater_vel);
 
       manif::SE_2_3d des
         (Eigen::Vector3d(0.0, 0.0, 5.0), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero());
