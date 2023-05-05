@@ -30,7 +30,7 @@ int main() {
     quad.get_dt()/1000.0
     );
 
-  std::cout << quad.get_dt() << std::endl;
+  //std::cout << quad.get_dt() << std::endl;
 
   ekf.loop_ekf();
 
@@ -84,7 +84,7 @@ int main() {
         double T = 3.14/2;
         y = 1.2 * sin(T*t);
         dy = 1.2 * T * cos(T*t);
-        z = 5 + 1.2 * cos(T*t);
+        z = 5 + 1.2 * cos(T*t)-1;
         dz = -1.2 * sin(T*t) * T;
         yaw = 0.0;//t * 0.5;
       }
