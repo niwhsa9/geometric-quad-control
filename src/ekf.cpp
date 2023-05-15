@@ -54,7 +54,7 @@ void EKF::update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc) {
             return std::make_tuple<Eigen::Vector3d, ObvJacobian>(std::move(m), std::move(H));
         }, 
         R_Accel);
-
+    
     obv_update(mag, 
         [] (manif::SE_2_3d &X){
             manif::SO3d::Jacobian J1, J2;
@@ -132,7 +132,6 @@ void EKFWorker::loop_ekf() {
     thread = std::make_unique<std::thread>([this] {
         while(true) {
             dispatch();
-
         }
     });
 }
