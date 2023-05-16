@@ -53,12 +53,13 @@ int main() {
     // TODO skip start iterations due to strange contact forces at init in sim
     if(!isnan(a.x()) && !isnan(gps_pos.x())) {
       ekf.predict(omega, a);
-      Eigen::Vector3d fake_acc = cheater_rot.inverse().toRotationMatrix() * Eigen::Vector3d(0.0, 0.0, 9.81);
+      //Eigen::Vector3d fake_acc = cheater_rot.inverse().toRotationMatrix() * Eigen::Vector3d(0.0, 0.0, 9.81);
+      Eigen::Vector3d fake_acc = a - Eigen::Vector3d(0.0, 0.0, ctrl.get_prev_az() - 9.81);//cheater_rot.inverse().toRotationMatrix() * Eigen::Vector3d(0.0, 0.0, 9.81);
       ekf.update_imu(mag, fake_acc);
       ekf.update_gps(gps_pos, gps_vel);
 
       auto state = ekf.get_state();
-      //auto state = manif::SE_2_3d(cheater_pos, cheater_rot, cheater_vel);
+      auto cheater_state = manif::SE_2_3d(cheater_pos, cheater_rot, cheater_vel);
 
       manif::SE_2_3d des
         (Eigen::Vector3d(0.0, 0.0, 5.0), Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0), Eigen::Vector3d::Zero());
@@ -91,9 +92,7 @@ int main() {
       Eigen::Vector4d cmd = ctrl.track_target(d_o, cur_state, std::nullopt);
 
       quad.set_vel(cmd);
-
-      auto rot_delta = ekf.get_state().asSO3().between(manif::SO3d(cheater_rot));
-
+      //auto rot_delta = ekf.get_state().asSO3().between(manif::SO3d(cheater_rot));
       //std::cout << "rot error " << rot_delta.log().weightedNorm() << std::endl;
       //"truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
       //std::cout << "pos error " << (gps_pos - ekf.get_state().translation()).norm() << std::endl;

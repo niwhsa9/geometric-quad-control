@@ -20,6 +20,7 @@ Eigen::Vector4d Controller::iterate_ctrl(const State &X, const State &X_d) {
 
     // Force control law projects ideal correction force onto vehicle z
     double f_z = (-kp * e_p - kv * e_v + mass * g + mass * X_d.acc).dot(X.X.rotation()*e3);
+    prev_a_z = f_z/mass;
 
     // Torque control law stabilizes attitude 
     // TODO higher order terms neglected
@@ -68,4 +69,8 @@ Eigen::Vector4d Controller::track_target(const FlatOutput &y, const State &X, co
 
     return iterate_ctrl(X, target);
 
+}
+
+double Controller::get_prev_az() {
+    return prev_a_z;
 }

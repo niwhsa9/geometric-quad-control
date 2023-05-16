@@ -29,6 +29,9 @@ class Controller {
         // attitude and angular velocity to track
         Eigen::Vector4d track_target(const FlatOutput &y, const State &X, const std::optional<manif::SO3d> &prev_attitude);
 
+        // Returns the last commanded acceleration m/s/s
+        double get_prev_az();
+
     private:
         double kp = 0.9, kv = 0.2, kr = 0.05, komega = 0.001;
 
@@ -40,4 +43,6 @@ class Controller {
         Eigen::Matrix3d I; 
         // Mass
         double mass = 0.4;
+
+        double prev_a_z = 0.0;
 };
