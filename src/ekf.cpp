@@ -43,18 +43,20 @@ void EKF::predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &accel) {
     P = F * P * F.transpose() + Q; 
 }
 
-void EKF::update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc) {
+void EKF::update_acc(const Eigen::Vector3d &acc) {
     obv_update(acc, 
         [] (manif::SE_2_3d &X){
             manif::SO3d::Jacobian J1, J2;
-            Eigen::Vector3d b(0.0, 0.0, 9.81);
+            //Eigen::Vector3d b(0.0, 0.0, 9.81);
+            Eigen::Vector3d b(0.0, 0.0, 1.0);
             Eigen::Vector3d m = X.asSO3().inverse(J1).act(b, J2); 
             Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
             H.block<3, 3>(0, 3) = J2 * J1;
             return std::make_tuple<Eigen::Vector3d, ObvJacobian>(std::move(m), std::move(H));
         }, 
         R_Accel);
-    
+}
+void EKF::update_mag(const Eigen::Vector3d &mag) {
     obv_update(mag, 
         [] (manif::SE_2_3d &X){
             manif::SO3d::Jacobian J1, J2;
@@ -65,6 +67,11 @@ void EKF::update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc) {
             return std::make_tuple<Eigen::Vector3d, ObvJacobian>(std::move(m), std::move(H));
         }, 
         R_Mag);
+}
+
+void EKF::update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc) {
+    EKF::update_acc(acc);
+    EKF::update_mag(mag);
 }
 
 void EKF::update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel) {
@@ -101,6 +108,16 @@ void EKFWorker::update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &ac
     work_queue.push(ImuUpdate { mag, acc } );
     cv.notify_one();    
 }
+void EKFWorker::update_acc(const Eigen::Vector3d &acc) {
+    std::unique_lock<std::mutex> lock(mtx);
+    work_queue.push(AccUpdate { acc } );
+    cv.notify_one();    
+}
+void EKFWorker::update_mag(const Eigen::Vector3d &mag) {
+    std::unique_lock<std::mutex> lock(mtx);
+    work_queue.push(MagUpdate { mag } );
+    cv.notify_one();    
+}
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
@@ -117,6 +134,8 @@ void EKFWorker::dispatch() {
             [this](const Predict& p) { EKF::predict(p.gyro, p.acc); },
             [this](const GpsUpdate& u) {  EKF::update_gps(u.pos, u.vel);  },
             [this](const ImuUpdate& u) { EKF::update_imu(u.mag, u.acc);  },
+            [this](const MagUpdate& u) { EKF::update_mag(u.mag);  },
+            [this](const AccUpdate& u) { EKF::update_acc(u.acc);  },
         };
         std::visit(visitor, job);
 

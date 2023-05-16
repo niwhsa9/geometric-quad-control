@@ -38,6 +38,8 @@ class EKF {
         virtual void predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &acc);
         virtual void update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel);
         virtual void update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc);
+        virtual void update_acc(const Eigen::Vector3d &acc);
+        virtual void update_mag(const Eigen::Vector3d &mag);
 
     protected:
         template <typename Callable>
@@ -81,6 +83,8 @@ class EKFWorker : public EKF {
         void predict(const Eigen::Vector3d &gyro, const Eigen::Vector3d &acc) override;
         void update_gps(const Eigen::Vector3d &pos, const Eigen::Vector3d &vel) override;
         void update_imu(const Eigen::Vector3d &mag, const Eigen::Vector3d &acc) override;
+        void update_acc(const Eigen::Vector3d &acc) override;
+        void update_mag(const Eigen::Vector3d &mag) override;
         State get_state() override;
 
     private: 
@@ -99,7 +103,13 @@ class EKFWorker : public EKF {
         struct ImuUpdate {
             Eigen::Vector3d mag, acc;
         };
+        struct MagUpdate {
+            Eigen::Vector3d mag;
+        };
+        struct AccUpdate {
+            Eigen::Vector3d acc;
+        };
 
-        using WorkType = std::variant<Predict, GpsUpdate, ImuUpdate>;
+        using WorkType = std::variant<Predict, GpsUpdate, ImuUpdate, MagUpdate, AccUpdate>;
         std::queue<WorkType> work_queue;
 };

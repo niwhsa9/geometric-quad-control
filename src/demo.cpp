@@ -53,9 +53,9 @@ int main() {
     // TODO skip start iterations due to strange contact forces at init in sim
     if(!isnan(a.x()) && !isnan(gps_pos.x())) {
       ekf.predict(omega, a);
-      //Eigen::Vector3d fake_acc = cheater_rot.inverse().toRotationMatrix() * Eigen::Vector3d(0.0, 0.0, 9.81);
-      Eigen::Vector3d fake_acc = a - Eigen::Vector3d(0.0, 0.0, ctrl.get_prev_az() - 9.81);//cheater_rot.inverse().toRotationMatrix() * Eigen::Vector3d(0.0, 0.0, 9.81);
-      ekf.update_imu(mag, fake_acc);
+
+      Eigen::Vector3d fake_acc = cheater_rot.inverse().toRotationMatrix() * Eigen::Vector3d(0.0, 0.0, 9.81);
+      ekf.update_imu(mag, fake_acc.normalized());
       ekf.update_gps(gps_pos, gps_vel);
 
       auto state = ekf.get_state();
