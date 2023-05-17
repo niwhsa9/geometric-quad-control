@@ -55,7 +55,10 @@ int main() {
       ekf.predict(omega, a);
 
       Eigen::Vector3d fake_acc = cheater_rot.inverse().toRotationMatrix() * Eigen::Vector3d(0.0, 0.0, 9.81);
-      ekf.update_imu(mag, fake_acc.normalized());
+      //ekf.update_imu(mag, fake_acc.normalized());
+      ekf.update_mag(mag);
+      //if(fabs(a.norm() - 9.81) < 0.1)
+      //ekf.update_acc(a.normalized());
       ekf.update_gps(gps_pos, gps_vel);
 
       auto state = ekf.get_state();
@@ -101,6 +104,16 @@ int main() {
       std::cout << "ekf " << state.x() << " " << state.y() <<  " " << state.z()  << " "<< 
         "truth " << gps_pos.x() << " " << gps_pos.y() <<  " " << gps_pos.z() << " "<< std::endl;
       */
+
+      std::cout << "ekf " 
+        << state.quat().x() << " " << state.quat().y() <<  " " 
+        << state.quat().z() << " " << state.quat().w() << " " 
+        << state.x() << " " << state.y() << " " << state.z() 
+        << " truth " 
+        << cheater_rot.x() << " " << cheater_rot.y() << " " 
+        << cheater_rot.z() << " " << cheater_rot.w() << " " 
+        << cheater_pos.x() << " " << cheater_pos.y() << " " << cheater_pos.z()
+        << std::endl;
     }
   }
 
