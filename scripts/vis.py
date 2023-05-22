@@ -24,10 +24,11 @@ if POS_ONLY:
     ax.plot(data[:, 3], data[:, 4], data[:, 5], marker = 'x', color='red')
     ax.plot(data[:, 0], data[:, 1], data[:, 2], marker = 'o', color='blue')
 else:
-    data = np.loadtxt("data.txt", delimiter=" ", usecols=(1,2,3,4,5,6,7))
+    #data = np.loadtxt("data.txt", delimiter=" ", usecols=(1,2,3,4,5,6,7))
+    data = np.loadtxt("data.txt", delimiter=" ", usecols=(9,10,11,12,13,14,15))
     fig = plt.figure()
     ax = fig.add_subplot(111, projection = '3d')
-    for row in data[::5]:
+    for row in data[::10]:
         draw_pose(ax, row[4:], row[:4])
 
 plt.show()
