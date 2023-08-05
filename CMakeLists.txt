@@ -16,4 +16,4 @@ file(GLOB QUADCONTROL_SRC
 link_directories(${WEBOTS_HOME}/lib)
 add_executable( quad ${QUADCONTROL_SRC} )
 target_link_libraries(quad ${WEBOTS_HOME}/lib/controller/libCppController.so pthread)
-target_include_directories( quad SYSTEM PUBLIC ${manif_INCLUDE_DIRS} ${WEBOTS_HOME}/include/controller/cpp include/)
+target_include_directories( quad SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR} ${manif_INCLUDE_DIRS} ${WEBOTS_HOME}/include/controller/cpp include/)

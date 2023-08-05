@@ -1,12 +1,12 @@
 let 
-pkgs = import <nixpkgs> { overlays = [ (import /home/ashwin/source/env-setup/nix/ashwin-nixpkgs) ] ; }; 
-
+  pkgs = import <nixpkgs> { }; 
+  #eigen-patch = pkgs.eigen.overrideAttrs (final : prev :  { patches = []; } );
 in
   pkgs.mkShell {
     # nativeBuildInputs is usually what you want -- tools you need to run
     nativeBuildInputs = with pkgs.buildPackages; [ 
         cmake 
-        eigen
+	eigen
         manif
     ];
 }
